@@ -1,6 +1,6 @@
 vars:
   step_count: &step_count 500
-  time_limit: &time_limit 86400 # 24 hrs
+  time_limit: &time_limit 43200 # 12 hrs, 86400 # 24 hrs
 
 defaults: &defaults
   start: aide/start.sh
@@ -21,7 +21,7 @@ aide:
   <<: *defaults
   kwargs:
     <<: *kwargs_common
-    agent.code.model: gpt-4o-2024-08-06
+    agent.code.model: gpt-5.1
     agent.feedback.model: gpt-4o-2024-08-06
     agent.steps: *step_count
   env_vars:
@@ -141,3 +141,25 @@ aide/obfuscated:
     <<: *env_vars
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OBFUSCATE: "true"
+
+aide/gemma-3-4b-it:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: google/gemma-3-4b-it
+    agent.feedback.model: gpt-4o-2024-08-06
+    agent.steps: *step_count
+  env_vars:
+    <<: *env_vars
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+aide/qwen-2.5-coder-7b-instruct:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: Qwen/Qwen2.5-Coder-7B-Instruct
+    agent.feedback.model: gpt-4o-2024-08-06
+    agent.steps: *step_count
+  env_vars:
+    <<: *env_vars
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

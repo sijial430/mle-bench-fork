@@ -9,8 +9,7 @@ from mlebench.utils import get_logger, get_module_dir, get_repo_dir, import_fn, 
 
 logger = get_logger(__name__)
 
-# DEFAULT_DATA_DIR = (Path(user_cache_dir()) / "mle-bench" / "data").resolve()
-DEFAULT_DATA_DIR = (Path("/scratch/gpfs/PLI/sl2998/.cache") / "mle-bench" / "data").resolve()
+DEFAULT_DATA_DIR = (Path(user_cache_dir()) / "mle-bench" / "data").resolve()
 
 
 @dataclass(frozen=True)

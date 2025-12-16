@@ -1,6 +1,6 @@
 vars:
-  step_count: &step_count 500
-  time_limit: &time_limit 43200 # 12 hrs, 86400 # 24 hrs
+  step_count: &step_count 50 # 500
+  time_limit: &time_limit 3600 # 12 hrs, 86400 # 24 hrs
 
 defaults: &defaults
   start: aide/start.sh
@@ -32,8 +32,8 @@ aide/dev:
   <<: *defaults
   kwargs:
     <<: *kwargs_common
-    agent.code.model: gpt-4o-2024-08-06
-    agent.feedback.model: gpt-4o-2024-08-06
+    agent.code.model: gpt-5-mini-2025-08-07
+    agent.feedback.model: gpt-5-mini-2025-08-07
     agent.steps: 8
   env_vars:
     <<: *env_vars

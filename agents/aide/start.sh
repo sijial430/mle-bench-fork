@@ -36,7 +36,7 @@ export TIME_LIMIT=$(format_time $TIME_LIMIT_SECS)
 
 # overwrite instructions.txt with instructions_obfuscated.txt if $OBFUSCATE is set
 if [ "$OBFUSCATE" = "true" ]; then
-  if [ ! -w /scratch/gpfs/PLI/sl2998/data ]; then
+  if [ ! -w /home/data/ ]; then
     echo "Obfuscation not implemented for read-only mounts"
     exit 1
   fi
@@ -61,13 +61,13 @@ printf "\nCOMPETITION INSTRUCTIONS\n------\n\n" >> ${AGENT_DIR}/full_instruction
 
 # overwrite description.md with description_obfuscated.md if $OBFUSCATE is set
 if [ "$OBFUSCATE" = "true" ]; then
-  if [ ! -w /scratch/gpfs/PLI/sl2998/data ]; then
+  if [ ! -w /home/data/ ]; then
     echo "Obfuscation not implemented for read-only mounts"
     exit 1
   fi
-  mv /scratch/gpfs/PLI/sl2998/datadescription_obfuscated.md /scratch/gpfs/PLI/sl2998/datadescription.md
+  mv /home/data/description_obfuscated.md /home/data/description.md
 fi
-cat /scratch/gpfs/PLI/sl2998/datadescription.md >> ${AGENT_DIR}/full_instructions.txt
+cat /home/data/description.md >> ${AGENT_DIR}/full_instructions.txt
 
 # symbolic linking
 # agent will write to AGENT_DIR/workspaces/exp/ and AGENT_DIR/logs/exp
@@ -82,7 +82,7 @@ ln -s ${CODE_DIR} ${AGENT_DIR}/workspaces/exp/best_solution
 ln -s ${SUBMISSION_DIR} ${AGENT_DIR}/workspaces/exp/best_submission
 
 # run with timeout, and print if timeout occurs
-timeout $TIME_LIMIT_SECS aide data_dir="/scratch/gpfs/PLI/sl2998/data" desc_file="${AGENT_DIR}/full_instructions.txt" \
+timeout $TIME_LIMIT_SECS aide data_dir="/home/data/" desc_file="${AGENT_DIR}/full_instructions.txt" \
   exp_name="exp" \
   $@ # forward the bash arguments to aide
 if [ $? -eq 124 ]; then

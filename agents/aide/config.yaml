@@ -32,9 +32,10 @@ aide/dev:
   <<: *defaults
   kwargs:
     <<: *kwargs_common
-    agent.code.model: gpt-5-mini-2025-08-07
+    agent.code.model: gpt-4.1-nano-2025-04-14
     agent.code.temp: 1
-    agent.feedback.model: gpt-5-mini-2025-08-07
+    agent.feedback.model: gpt-4.1-nano-2025-04-14
+    agent.feedback.temp: 1
     agent.steps: 8
   env_vars:
     <<: *env_vars

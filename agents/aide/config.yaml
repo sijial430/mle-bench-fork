@@ -1,6 +1,6 @@
 vars:
-  step_count: &step_count 50 # 500
-  time_limit: &time_limit 3600 # 12 hrs, 86400 # 24 hrs
+  step_count: &step_count 125 # 500
+  time_limit: &time_limit 21600 # 12 hrs, 86400 # 24 hrs
 
 defaults: &defaults
   start: aide/start.sh
@@ -22,7 +22,7 @@ aide:
   kwargs:
     <<: *kwargs_common
     agent.code.model: gpt-5.1
-    agent.feedback.model: gpt-4o-2024-08-06
+    agent.feedback.model: gpt-5-mini-2025-08-07
     agent.steps: *step_count
   env_vars:
     <<: *env_vars
@@ -35,6 +35,19 @@ aide/dev:
     agent.code.model: gpt-4.1-nano-2025-04-14
     agent.code.temp: 1
     agent.feedback.model: gpt-4.1-nano-2025-04-14
+    agent.feedback.temp: 1
+    agent.steps: 8
+  env_vars:
+    <<: *env_vars
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+aide/gpt-5-mini:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: gpt-5-mini-2025-08-07
+    agent.code.temp: 1
+    agent.feedback.model: gpt-5-mini-2025-08-07
     agent.feedback.temp: 1
     agent.steps: 8
   env_vars:

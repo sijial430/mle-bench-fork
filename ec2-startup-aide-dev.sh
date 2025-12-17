@@ -235,7 +235,7 @@ sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-ai
 echo "Patching AIDE package for GPT-4.1/GPT-5 temperature support..."
 
 # Create and start a temporary container to apply patches (keeps it running with tail -f)
-TEMP_CONTAINER=$(sudo docker run -d mlebench-aide:latest tail -f /dev/null)
+TEMP_CONTAINER=$(sudo docker run -d aide:latest tail -f /dev/null)
 echo "Created temporary container: $TEMP_CONTAINER"
 
 # Patch 1: Fix backend_openai.py to remove temperature for gpt-4.1 and gpt-5 models
@@ -261,7 +261,7 @@ sudo docker exec $TEMP_CONTAINER bash -c \
 
 # Commit the patched container as the new image
 echo "Committing patched container..."
-sudo docker commit $TEMP_CONTAINER mlebench-aide:latest
+sudo docker commit $TEMP_CONTAINER aide:latest
 
 # Stop and remove the temporary container
 echo "Cleaning up temporary container..."

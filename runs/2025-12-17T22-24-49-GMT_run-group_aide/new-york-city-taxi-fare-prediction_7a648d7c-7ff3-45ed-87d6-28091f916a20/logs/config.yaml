@@ -1,0 +1,47 @@
+data_dir: !!python/object/apply:pathlib.PosixPath
+- /
+- home
+- data
+desc_file: !!python/object/apply:pathlib.PosixPath
+- /
+- home
+- agent
+- full_instructions.txt
+goal: null
+eval: null
+log_dir: !!python/object/apply:pathlib.PosixPath
+- /
+- home
+- logs
+log_level: INFO
+workspace_dir: !!python/object/apply:pathlib.PosixPath
+- /
+- home
+- agent
+- workspaces
+- exp
+preprocess_data: true
+copy_data: false
+exp_name: exp
+exec:
+  timeout: 32400
+  agent_file_name: runfile.py
+  format_tb_ipython: false
+agent:
+  steps: 125
+  time_limit: 21600
+  k_fold_validation: 5
+  expose_prediction: false
+  data_preview: true
+  convert_system_to_user: false
+  obfuscate: false
+  code:
+    model: gpt-5.1
+    temp: 1.0
+  feedback:
+    model: gpt-5-mini-2025-08-07
+    temp: 1.0
+  search:
+    max_debug_depth: 20
+    debug_prob: 1.0
+    num_drafts: 5

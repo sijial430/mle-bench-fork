@@ -1,0 +1,449 @@
+[2025-12-18 04:26:33,902] [run_agent.py:55] [Worker 0] Running seed 0 for smartphone-decimeter-2022 and agent aide
+[2025-12-18 04:26:33,961] [run.py:137] [1;35mRun started: /home/ubuntu/mle-bench-fork/runs/2025-12-18T04-26-26-GMT_run-group_aide/smartphone-decimeter-2022_d59f7ef1-552e-459c-a4ca-24cbfca00037[0m
+[2025-12-18 04:26:39,252] [run.py:59] Running agent...
+[2025-12-18 04:26:39,301] [run.py:63] [Container] + cd /home/agent
+[2025-12-18 04:26:39,301] [run.py:63] [Container] ++ conda shell.bash hook
+[2025-12-18 04:26:39,793] [run.py:63] [Container] + eval 'export CONDA_EXE='\''/opt/conda/bin/conda'\''
+export _CONDA_EXE='\''/opt/conda/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/conda/bin/python'\''
+export _CONDA_ROOT='\''/opt/conda'\''
+
+# Copyright (C) 2012 Anaconda, Inc
+# SPDX-License-Identifier: BSD-3-Clause
+__conda_exe() (
+    if [ -n "${_CE_M:+x}" ] && [ -n "${_CE_CONDA:+x}" ]; then
+        # only use _CE_M/_CE_CONDA when defined to avoid issues when run with `set -u`
+        "$CONDA_EXE" $_CE_M $_CE_CONDA "$@"
+    else
+        "$CONDA_EXE" "$@"
+    fi
+)
+
+__conda_hashr() {
+    if [ -n "${ZSH_VERSION:+x}" ]; then
+        \rehash
+    elif [ -n "${POSH_VERSION:+x}" ]; then
+        :  # pass
+    else
+        \hash -r
+    fi
+}
+
+__conda_activate() {
+    if [ -n "${CONDA_PS1_BACKUP:+x}" ]; then
+        # Handle transition from shell activated with conda <= 4.3 to a subsequent activation
+        # after conda updated to >= 4.4. See issue #6173.
+        PS1="$CONDA_PS1_BACKUP"
+        \unset CONDA_PS1_BACKUP
+    fi
+    \local ask_conda
+    ask_conda="$(PS1="${PS1:-}" __conda_exe shell.posix "$@")" || \return
+    \eval "$ask_conda"
+    __conda_hashr
+}
+
+__conda_reactivate() {
+    # FUTURE: conda 25.9, remove this function
+    echo "'\''__conda_reactivate'\'' is deprecated and will be removed in 25.9. Use '\''__conda_activate reactivate'\'' instead." 1>&2
+    __conda_activate reactivate
+}
+
+conda() {
+    \local cmd="${1-__missing__}"
+    case "$cmd" in
+        activate|deactivate)
+            __conda_activate "$@"
+            ;;
+        install|update|upgrade|remove|uninstall)
+            __conda_exe "$@" || \return
+            __conda_activate reactivate
+            ;;
+        *)
+            __conda_exe "$@"
+            ;;
+    esac
+}
+
+if [ -z "${CONDA_SHLVL+x}" ]; then
+    \export CONDA_SHLVL=0
+    # In dev-mode CONDA_EXE is python.exe and on Windows
+    # it is in a different relative location to condabin.
+    if [ -n "${_CE_CONDA:+x}" ] && [ -n "${WINDIR+x}" ]; then
+        PATH="$(\dirname "$CONDA_EXE")/condabin${PATH:+":${PATH}"}"
+    else
+        PATH="$(\dirname "$(\dirname "$CONDA_EXE")")/condabin${PATH:+":${PATH}"}"
+    fi
+    \export PATH
+
+    # We'\''re not allowing PS1 to be unbound. It must at least be set.
+    # However, we'\''re not exporting it, which can cause problems when starting a second shell
+    # via a first shell (i.e. starting zsh from bash).
+    if [ -z "${PS1+x}" ]; then
+        PS1=
+    fi
+fi
+
+conda activate '\''base'\'''
+++ export CONDA_EXE=/opt/conda/bin/conda
+++ CONDA_EXE=/opt/conda/bin/conda
+++ export _CONDA_EXE=/opt/conda/bin/conda
+++ _CONDA_EXE=/opt/conda/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/conda/bin/python
+++ CONDA_PYTHON_EXE=/opt/conda/bin/python
+++ export _CONDA_ROOT=/opt/conda
+++ _CONDA_ROOT=/opt/conda
+[2025-12-18 04:26:39,793] [run.py:63] [Container] ++ '[' -z '' ']'
+++ export CONDA_SHLVL=0
+++ CONDA_SHLVL=0
+++ '[' -n '' ']'
+[2025-12-18 04:26:39,794] [run.py:63] [Container] ++++ dirname /opt/conda/bin/conda
+[2025-12-18 04:26:39,795] [run.py:63] [Container] +++ dirname /opt/conda/bin
+[2025-12-18 04:26:39,796] [run.py:63] [Container] ++ PATH=/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export PATH
+[2025-12-18 04:26:39,796] [run.py:63] [Container] ++ '[' -z '' ']'
+++ PS1=
+[2025-12-18 04:26:39,796] [run.py:63] [Container] ++ conda activate base
+[2025-12-18 04:26:39,796] [run.py:63] [Container] ++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate base
+[2025-12-18 04:26:39,796] [run.py:63] [Container] ++ '[' -n '' ']'
+++ local ask_conda
+[2025-12-18 04:26:39,796] [run.py:63] [Container] +++ PS1=
++++ __conda_exe shell.posix activate base
+[2025-12-18 04:26:39,796] [run.py:63] [Container] +++ '[' -n '' ']'
++++ /opt/conda/bin/conda shell.posix activate base
+[2025-12-18 04:26:40,280] [run.py:63] [Container] ++ ask_conda='export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+PS1='\''(base) '\''
+export PATH='\''/opt/conda/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/conda'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/conda/bin/conda'\''
+export _CONDA_EXE='\''/opt/conda/bin/conda'\''
+export CONDA_PYTHON_EXE='\''/opt/conda/bin/python'\''
+export _CONDA_ROOT='\''/opt/conda'\'''
+++ eval 'export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+PS1='\''(base) '\''
+export PATH='\''/opt/conda/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/conda'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/conda/bin/conda'\''
+export _CONDA_EXE='\''/opt/conda/bin/conda'\''
+export CONDA_PYTHON_EXE='\''/opt/conda/bin/python'\''
+export _CONDA_ROOT='\''/opt/conda'\'''
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ PS1='(base) '
+[2025-12-18 04:26:40,281] [run.py:63] [Container] +++ export PATH=/opt/conda/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/conda/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/conda
++++ CONDA_PREFIX=/opt/conda
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
+[2025-12-18 04:26:40,281] [run.py:63] [Container] +++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
+[2025-12-18 04:26:40,281] [run.py:63] [Container] +++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/conda/bin/conda
++++ CONDA_EXE=/opt/conda/bin/conda
++++ export _CONDA_EXE=/opt/conda/bin/conda
++++ _CONDA_EXE=/opt/conda/bin/conda
+[2025-12-18 04:26:40,281] [run.py:63] [Container] +++ export CONDA_PYTHON_EXE=/opt/conda/bin/python
++++ CONDA_PYTHON_EXE=/opt/conda/bin/python
++++ export _CONDA_ROOT=/opt/conda
++++ _CONDA_ROOT=/opt/conda
+++ __conda_hashr
+[2025-12-18 04:26:40,281] [run.py:63] [Container] ++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
+[2025-12-18 04:26:40,281] [run.py:63] [Container] + conda activate agent
++ local cmd=activate
++ case "$cmd" in
+[2025-12-18 04:26:40,281] [run.py:63] [Container] + __conda_activate activate agent
+[2025-12-18 04:26:40,281] [run.py:63] [Container] + '[' -n '' ']'
++ local ask_conda
+[2025-12-18 04:26:40,281] [run.py:63] [Container] ++ PS1='(base) '
+++ __conda_exe shell.posix activate agent
+[2025-12-18 04:26:40,281] [run.py:63] [Container] ++ '[' -n '' ']'
+[2025-12-18 04:26:40,281] [run.py:63] [Container] ++ /opt/conda/bin/conda shell.posix activate agent
+[2025-12-18 04:26:40,769] [run.py:63] [Container] + ask_conda='export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+PS1='\''(agent) '\''
+export PATH='\''/opt/conda/envs/agent/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/conda/envs/agent'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''agent'\''
+export CONDA_PROMPT_MODIFIER='\''(agent) '\''
+export CONDA_PREFIX_1='\''/opt/conda'\''
+export CONDA_EXE='\''/opt/conda/bin/conda'\''
+export _CONDA_EXE='\''/opt/conda/bin/conda'\''
+export CONDA_PYTHON_EXE='\''/opt/conda/bin/python'\''
+export _CONDA_ROOT='\''/opt/conda'\'''
++ eval 'export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+PS1='\''(agent) '\''
+export PATH='\''/opt/conda/envs/agent/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/conda/envs/agent'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''agent'\''
+export CONDA_PROMPT_MODIFIER='\''(agent) '\''
+export CONDA_PREFIX_1='\''/opt/conda'\''
+export CONDA_EXE='\''/opt/conda/bin/conda'\''
+export _CONDA_EXE='\''/opt/conda/bin/conda'\''
+export CONDA_PYTHON_EXE='\''/opt/conda/bin/python'\''
+export _CONDA_ROOT='\''/opt/conda'\'''
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+[2025-12-18 04:26:40,769] [run.py:63] [Container] ++ PS1='(agent) '
+[2025-12-18 04:26:40,769] [run.py:63] [Container] ++ export PATH=/opt/conda/envs/agent/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/conda/envs/agent/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+[2025-12-18 04:26:40,769] [run.py:63] [Container] ++ export CONDA_PREFIX=/opt/conda/envs/agent
+++ CONDA_PREFIX=/opt/conda/envs/agent
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+[2025-12-18 04:26:40,769] [run.py:63] [Container] ++ export CONDA_DEFAULT_ENV=agent
+++ CONDA_DEFAULT_ENV=agent
+++ export 'CONDA_PROMPT_MODIFIER=(agent) '
+++ CONDA_PROMPT_MODIFIER='(agent) '
+++ export CONDA_PREFIX_1=/opt/conda
+++ CONDA_PREFIX_1=/opt/conda
+[2025-12-18 04:26:40,769] [run.py:63] [Container] ++ export CONDA_EXE=/opt/conda/bin/conda
+++ CONDA_EXE=/opt/conda/bin/conda
+[2025-12-18 04:26:40,770] [run.py:63] [Container] ++ export _CONDA_EXE=/opt/conda/bin/conda
+++ _CONDA_EXE=/opt/conda/bin/conda
+++ export CONDA_PYTHON_EXE=/opt/conda/bin/python
+++ CONDA_PYTHON_EXE=/opt/conda/bin/python
+[2025-12-18 04:26:40,770] [run.py:63] [Container] ++ export _CONDA_ROOT=/opt/conda
+++ _CONDA_ROOT=/opt/conda
++ __conda_hashr
+[2025-12-18 04:26:40,770] [run.py:63] [Container] + '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
+[2025-12-18 04:26:40,770] [run.py:63] [Container] + command -v nvidia-smi
+[2025-12-18 04:26:40,770] [run.py:63] [Container] + HARDWARE='a CPU'
++ export HARDWARE
+[2025-12-18 04:26:40,770] [run.py:63] [Container] + python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else '\''WARNING: No GPU'\'')'
+[2025-12-18 04:26:42,189] [run.py:63] [Container] WARNING: No GPU
+[2025-12-18 04:26:42,402] [run.py:63] [Container] + python -c 'import tensorflow as tf; print('\''GPUs Available: '\'', tf.config.list_physical_devices('\''GPU'\''))'
+[2025-12-18 04:26:42,732] [run.py:63] [Container] 2025-12-18 04:26:42.731908: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+[2025-12-18 04:26:42,748] [run.py:63] [Container] 2025-12-18 04:26:42.748147: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+[2025-12-18 04:26:42,753] [run.py:63] [Container] 2025-12-18 04:26:42.753094: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+[2025-12-18 04:26:42,765] [run.py:63] [Container] 2025-12-18 04:26:42.765179: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+[2025-12-18 04:26:44,066] [run.py:63] [Container] 2025-12-18 04:26:44.065998: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+[2025-12-18 04:26:45,148] [run.py:63] [Container] GPUs Available:  []
+[2025-12-18 04:26:45,574] [run.py:63] [Container] ++ format_time 21600
+++ local time_in_sec=21600
+++ local hours=6
+++ local minutes=0
+++ local seconds=0
+[2025-12-18 04:26:45,574] [run.py:63] [Container] ++ echo '6hrs 0mins 0secs'
+[2025-12-18 04:26:45,574] [run.py:63] [Container] + export 'TIME_LIMIT=6hrs 0mins 0secs'
++ TIME_LIMIT='6hrs 0mins 0secs'
+[2025-12-18 04:26:45,574] [run.py:63] [Container] + '[' '' = true ']'
+[2025-12-18 04:26:45,574] [run.py:63] [Container] + cp /home/instructions.txt /home/agent/full_instructions.txt
+[2025-12-18 04:26:45,578] [run.py:63] [Container] + sed -i 's|/home/||g' /home/agent/full_instructions.txt
+[2025-12-18 04:26:45,579] [run.py:63] [Container] + echo ''
+[2025-12-18 04:26:45,579] [run.py:63] [Container] + envsubst
+[2025-12-18 04:26:45,580] [run.py:63] [Container] + printf '\nCOMPETITION INSTRUCTIONS\n------\n\n'
+[2025-12-18 04:26:45,580] [run.py:63] [Container] + '[' '' = true ']'
++ cat /home/data/description.md
+[2025-12-18 04:26:45,582] [run.py:63] [Container] + mkdir -p /home/agent/workspaces/exp
+[2025-12-18 04:26:45,584] [run.py:63] [Container] + mkdir -p /home/agent/logs
+[2025-12-18 04:26:45,585] [run.py:63] [Container] + ln -s /home/logs /home/agent/logs/exp
+[2025-12-18 04:26:45,586] [run.py:63] [Container] + ln -s /home/code /home/agent/workspaces/exp/best_solution
+[2025-12-18 04:26:45,587] [run.py:63] [Container] + ln -s /home/submission /home/agent/workspaces/exp/best_submission
+[2025-12-18 04:26:45,588] [run.py:63] [Container] + timeout 21600 aide data_dir=/home/data/ desc_file=/home/agent/full_instructions.txt exp_name=exp agent.search.max_debug_depth=20 agent.search.debug_prob=1 agent.time_limit=21600 exec.timeout=32400 copy_data=False agent.code.model=gpt-5-mini-2025-08-07 agent.code.temp=1 agent.feedback.model=gpt-5-mini-2025-08-07 agent.feedback.temp=1
+[2025-12-18 04:26:48,072] [run.py:63] [Container] [2025-12-18 04:26:48,072] INFO: Starting run "exp"
+[2025-12-18 04:34:56,857] [run.py:63] [Container] [2025-12-18 04:34:56,856] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:34:56,857] [run.py:63] [Container] [2025-12-18 04:34:56,857] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:35:53,536] [run.py:63] [Container] [2025-12-18 04:35:53,536] INFO: Drafted new node f6637b88f52440e391cd7f3ab211ab46
+[2025-12-18 04:35:53,537] [run.py:63] [Container] [2025-12-18 04:35:53,536] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:36:59,103] [run.py:63] [Container] [2025-12-18 04:36:59,103] INFO: Agent is parsing execution results for node f6637b88f52440e391cd7f3ab211ab46
+[2025-12-18 04:37:12,724] [run.py:63] [Container] [2025-12-18 04:37:12,723] INFO: Parsed results: Node f6637b88f52440e391cd7f3ab211ab46 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:37:12,729] [run.py:63] [Container] /opt/conda/envs/agent/lib/python3.11/site-packages/aide/utils/tree_export.py:34: RuntimeWarning: invalid value encountered in divide
+  layout = (layout - layout.min(axis=0)) / (layout.max(axis=0) - layout.min(axis=0))
+[2025-12-18 04:37:12,730] [run.py:63] [Container] [2025-12-18 04:37:12,730] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:37:12,730] [run.py:63] [Container] [2025-12-18 04:37:12,730] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:38:23,847] [run.py:63] [Container] [2025-12-18 04:38:23,846] INFO: Drafted new node 7f72d63aaa094ebab189d00846d9073a
+[2025-12-18 04:38:23,847] [run.py:63] [Container] [2025-12-18 04:38:23,847] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:39:01,182] [run.py:63] [Container] [2025-12-18 04:39:01,182] INFO: Agent is parsing execution results for node 7f72d63aaa094ebab189d00846d9073a
+[2025-12-18 04:39:14,532] [run.py:63] [Container] [2025-12-18 04:39:14,532] INFO: Parsed results: Node 7f72d63aaa094ebab189d00846d9073a is buggy and/or did not produce a submission.csv
+[2025-12-18 04:39:14,538] [run.py:63] [Container] [2025-12-18 04:39:14,538] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:39:14,538] [run.py:63] [Container] [2025-12-18 04:39:14,538] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:40:48,076] [run.py:63] [Container] [2025-12-18 04:40:48,076] INFO: Drafted new node fa273f3a62fa4774bb052896b7169adb
+[2025-12-18 04:40:48,077] [run.py:63] [Container] [2025-12-18 04:40:48,076] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:41:49,882] [run.py:63] [Container] [2025-12-18 04:41:49,882] INFO: Agent is parsing execution results for node fa273f3a62fa4774bb052896b7169adb
+[2025-12-18 04:42:10,755] [run.py:63] [Container] [2025-12-18 04:42:10,755] INFO: Parsed results: Node fa273f3a62fa4774bb052896b7169adb is buggy and/or did not produce a submission.csv
+[2025-12-18 04:42:10,763] [run.py:63] [Container] [2025-12-18 04:42:10,763] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:42:10,763] [run.py:63] [Container] [2025-12-18 04:42:10,763] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:43:22,573] [run.py:63] [Container] [2025-12-18 04:43:22,572] INFO: Drafted new node 9b73dd6a0990471d80f4a9d41ef22cee
+[2025-12-18 04:43:22,573] [run.py:63] [Container] [2025-12-18 04:43:22,572] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:43:22,656] [run.py:63] [Container] [2025-12-18 04:43:22,655] INFO: Agent is parsing execution results for node 9b73dd6a0990471d80f4a9d41ef22cee
+[2025-12-18 04:43:34,142] [run.py:63] [Container] [2025-12-18 04:43:34,142] INFO: Parsed results: Node 9b73dd6a0990471d80f4a9d41ef22cee is buggy and/or did not produce a submission.csv
+[2025-12-18 04:43:34,151] [run.py:63] [Container] [2025-12-18 04:43:34,151] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:43:34,151] [run.py:63] [Container] [2025-12-18 04:43:34,151] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:44:53,257] [run.py:63] [Container] [2025-12-18 04:44:53,257] INFO: Drafted new node 3c251e9fba2041acb6e591e3289c0626
+[2025-12-18 04:44:53,258] [run.py:63] [Container] [2025-12-18 04:44:53,257] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:44:53,281] [run.py:63] [Container] [2025-12-18 04:44:53,280] INFO: Agent is parsing execution results for node 3c251e9fba2041acb6e591e3289c0626
+[2025-12-18 04:45:25,877] [run.py:63] [Container] [2025-12-18 04:45:25,877] INFO: Parsed results: Node 3c251e9fba2041acb6e591e3289c0626 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:45:25,887] [run.py:63] [Container] [2025-12-18 04:45:25,887] INFO: [search policy] debugging node 9b73dd6a0990471d80f4a9d41ef22cee
+[2025-12-18 04:45:25,887] [run.py:63] [Container] [2025-12-18 04:45:25,887] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:46:24,089] [run.py:63] [Container] [2025-12-18 04:46:24,089] INFO: Debugged node 9b73dd6a0990471d80f4a9d41ef22cee to create new node 99e69fd539634f5486d6b27e58109fbf
+[2025-12-18 04:46:24,089] [run.py:63] [Container] [2025-12-18 04:46:24,089] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:46:30,641] [run.py:63] [Container] [2025-12-18 04:46:30,640] INFO: Agent is parsing execution results for node 99e69fd539634f5486d6b27e58109fbf
+[2025-12-18 04:46:38,315] [run.py:63] [Container] [2025-12-18 04:46:38,314] INFO: Parsed results: Node 99e69fd539634f5486d6b27e58109fbf is not buggy
+[2025-12-18 04:46:38,315] [run.py:63] [Container] [2025-12-18 04:46:38,315] INFO: Node 99e69fd539634f5486d6b27e58109fbf is the best node so far
+[2025-12-18 04:46:38,327] [run.py:63] [Container] [2025-12-18 04:46:38,327] INFO: [search policy] debugging node f6637b88f52440e391cd7f3ab211ab46
+[2025-12-18 04:46:38,327] [run.py:63] [Container] [2025-12-18 04:46:38,327] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:47:35,476] [run.py:63] [Container] [2025-12-18 04:47:35,476] INFO: Debugged node f6637b88f52440e391cd7f3ab211ab46 to create new node 52589c4781e84d50bae320bb0e33e7ea
+[2025-12-18 04:47:35,476] [run.py:63] [Container] [2025-12-18 04:47:35,476] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:48:53,770] [run.py:63] [Container] [2025-12-18 04:48:53,770] INFO: Agent is parsing execution results for node 52589c4781e84d50bae320bb0e33e7ea
+[2025-12-18 04:49:09,386] [run.py:63] [Container] [2025-12-18 04:49:09,386] INFO: Parsed results: Node 52589c4781e84d50bae320bb0e33e7ea is buggy and/or did not produce a submission.csv
+[2025-12-18 04:49:09,387] [run.py:63] [Container] [2025-12-18 04:49:09,386] INFO: Node 52589c4781e84d50bae320bb0e33e7ea is not the best node
+[2025-12-18 04:49:09,387] [run.py:63] [Container] [2025-12-18 04:49:09,386] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 04:49:09,397] [run.py:63] [Container] [2025-12-18 04:49:09,397] INFO: [search policy] debugging node 52589c4781e84d50bae320bb0e33e7ea
+[2025-12-18 04:49:09,397] [run.py:63] [Container] [2025-12-18 04:49:09,397] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:50:11,729] [run.py:63] [Container] [2025-12-18 04:50:11,728] INFO: Debugged node 52589c4781e84d50bae320bb0e33e7ea to create new node 8f85c107bb3e463294603e5ddca904a9
+[2025-12-18 04:50:11,729] [run.py:63] [Container] [2025-12-18 04:50:11,729] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:51:27,256] [run.py:63] [Container] [2025-12-18 04:51:27,255] INFO: Agent is parsing execution results for node 8f85c107bb3e463294603e5ddca904a9
+[2025-12-18 04:51:37,196] [run.py:63] [Container] [2025-12-18 04:51:37,196] INFO: Parsed results: Node 8f85c107bb3e463294603e5ddca904a9 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:51:37,196] [run.py:63] [Container] [2025-12-18 04:51:37,196] INFO: Node 8f85c107bb3e463294603e5ddca904a9 is not the best node
+[2025-12-18 04:51:37,196] [run.py:63] [Container] [2025-12-18 04:51:37,196] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 04:51:37,208] [run.py:63] [Container] [2025-12-18 04:51:37,208] INFO: [search policy] debugging node 7f72d63aaa094ebab189d00846d9073a
+[2025-12-18 04:51:37,208] [run.py:63] [Container] [2025-12-18 04:51:37,208] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:52:36,095] [run.py:63] [Container] [2025-12-18 04:52:36,094] INFO: Debugged node 7f72d63aaa094ebab189d00846d9073a to create new node 4fb1152c6fe54bfc89c0956871f83908
+[2025-12-18 04:52:36,095] [run.py:63] [Container] [2025-12-18 04:52:36,094] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:53:12,907] [run.py:63] [Container] [2025-12-18 04:53:12,907] INFO: Agent is parsing execution results for node 4fb1152c6fe54bfc89c0956871f83908
+[2025-12-18 04:53:24,189] [run.py:63] [Container] [2025-12-18 04:53:24,189] INFO: Parsed results: Node 4fb1152c6fe54bfc89c0956871f83908 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:53:24,189] [run.py:63] [Container] [2025-12-18 04:53:24,189] INFO: Node 4fb1152c6fe54bfc89c0956871f83908 is not the best node
+[2025-12-18 04:53:24,189] [run.py:63] [Container] [2025-12-18 04:53:24,189] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 04:53:24,201] [run.py:63] [Container] [2025-12-18 04:53:24,201] INFO: [search policy] debugging node 4fb1152c6fe54bfc89c0956871f83908
+[2025-12-18 04:53:24,201] [run.py:63] [Container] [2025-12-18 04:53:24,201] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:54:14,322] [run.py:63] [Container] [2025-12-18 04:54:14,322] INFO: Debugged node 4fb1152c6fe54bfc89c0956871f83908 to create new node e9f7d454922e4723ba21d43c7fd615c3
+[2025-12-18 04:54:14,322] [run.py:63] [Container] [2025-12-18 04:54:14,322] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:54:51,561] [run.py:63] [Container] [2025-12-18 04:54:51,560] INFO: Agent is parsing execution results for node e9f7d454922e4723ba21d43c7fd615c3
+[2025-12-18 04:54:57,222] [run.py:63] [Container] [2025-12-18 04:54:57,222] INFO: Parsed results: Node e9f7d454922e4723ba21d43c7fd615c3 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:54:57,223] [run.py:63] [Container] [2025-12-18 04:54:57,222] INFO: Node e9f7d454922e4723ba21d43c7fd615c3 is not the best node
+[2025-12-18 04:54:57,223] [run.py:63] [Container] [2025-12-18 04:54:57,222] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 04:54:57,235] [run.py:63] [Container] [2025-12-18 04:54:57,235] INFO: [search policy] debugging node fa273f3a62fa4774bb052896b7169adb
+[2025-12-18 04:54:57,235] [run.py:63] [Container] [2025-12-18 04:54:57,235] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:56:06,739] [run.py:63] [Container] [2025-12-18 04:56:06,739] INFO: Debugged node fa273f3a62fa4774bb052896b7169adb to create new node e230961a8cc1483789ad1e06bdc55c9a
+[2025-12-18 04:56:06,740] [run.py:63] [Container] [2025-12-18 04:56:06,739] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:57:10,345] [run.py:63] [Container] [2025-12-18 04:57:10,344] INFO: Agent is parsing execution results for node e230961a8cc1483789ad1e06bdc55c9a
+[2025-12-18 04:57:22,439] [run.py:63] [Container] [2025-12-18 04:57:22,439] INFO: Parsed results: Node e230961a8cc1483789ad1e06bdc55c9a is buggy and/or did not produce a submission.csv
+[2025-12-18 04:57:22,439] [run.py:63] [Container] [2025-12-18 04:57:22,439] INFO: Node e230961a8cc1483789ad1e06bdc55c9a is not the best node
+[2025-12-18 04:57:22,439] [run.py:63] [Container] [2025-12-18 04:57:22,439] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 04:57:22,454] [run.py:63] [Container] [2025-12-18 04:57:22,454] INFO: [search policy] debugging node 8f85c107bb3e463294603e5ddca904a9
+[2025-12-18 04:57:22,454] [run.py:63] [Container] [2025-12-18 04:57:22,454] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:58:36,852] [run.py:63] [Container] [2025-12-18 04:58:36,851] INFO: Debugged node 8f85c107bb3e463294603e5ddca904a9 to create new node 5d26593dc0be41198c087bebb3d4cf74
+[2025-12-18 04:58:36,852] [run.py:63] [Container] [2025-12-18 04:58:36,851] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:00:03,073] [run.py:63] [Container] [2025-12-18 05:00:03,073] INFO: Agent is parsing execution results for node 5d26593dc0be41198c087bebb3d4cf74
+[2025-12-18 05:00:12,863] [run.py:63] [Container] [2025-12-18 05:00:12,863] INFO: Parsed results: Node 5d26593dc0be41198c087bebb3d4cf74 is buggy and/or did not produce a submission.csv
+[2025-12-18 05:00:12,863] [run.py:63] [Container] [2025-12-18 05:00:12,863] INFO: Node 5d26593dc0be41198c087bebb3d4cf74 is not the best node
+[2025-12-18 05:00:12,863] [run.py:63] [Container] [2025-12-18 05:00:12,863] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:00:12,879] [run.py:63] [Container] [2025-12-18 05:00:12,879] INFO: [search policy] debugging node 3c251e9fba2041acb6e591e3289c0626
+[2025-12-18 05:00:12,879] [run.py:63] [Container] [2025-12-18 05:00:12,879] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:01:25,017] [run.py:63] [Container] [2025-12-18 05:01:25,017] INFO: Debugged node 3c251e9fba2041acb6e591e3289c0626 to create new node 5ca505b866a947b28e766706d25ba327
+[2025-12-18 05:01:25,017] [run.py:63] [Container] [2025-12-18 05:01:25,017] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:01:25,043] [run.py:63] [Container] [2025-12-18 05:01:25,042] INFO: Agent is parsing execution results for node 5ca505b866a947b28e766706d25ba327
+[2025-12-18 05:01:41,097] [run.py:63] [Container] [2025-12-18 05:01:41,097] INFO: Parsed results: Node 5ca505b866a947b28e766706d25ba327 is buggy and/or did not produce a submission.csv
+[2025-12-18 05:01:41,097] [run.py:63] [Container] [2025-12-18 05:01:41,097] INFO: Node 5ca505b866a947b28e766706d25ba327 is not the best node
+[2025-12-18 05:01:41,097] [run.py:63] [Container] [2025-12-18 05:01:41,097] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:01:41,114] [run.py:63] [Container] [2025-12-18 05:01:41,114] INFO: [search policy] debugging node e230961a8cc1483789ad1e06bdc55c9a
+[2025-12-18 05:01:41,114] [run.py:63] [Container] [2025-12-18 05:01:41,114] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:03:12,529] [run.py:63] [Container] [2025-12-18 05:03:12,529] INFO: Debugged node e230961a8cc1483789ad1e06bdc55c9a to create new node 38c4fc173a36470e9ac3be46c7c25263
+[2025-12-18 05:03:12,529] [run.py:63] [Container] [2025-12-18 05:03:12,529] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:04:16,544] [run.py:63] [Container] [2025-12-18 05:04:16,544] INFO: Agent is parsing execution results for node 38c4fc173a36470e9ac3be46c7c25263
+[2025-12-18 05:04:31,120] [run.py:63] [Container] [2025-12-18 05:04:31,120] INFO: Parsed results: Node 38c4fc173a36470e9ac3be46c7c25263 is buggy and/or did not produce a submission.csv
+[2025-12-18 05:04:31,120] [run.py:63] [Container] [2025-12-18 05:04:31,120] INFO: Node 38c4fc173a36470e9ac3be46c7c25263 is not the best node
+[2025-12-18 05:04:31,120] [run.py:63] [Container] [2025-12-18 05:04:31,120] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:04:31,138] [run.py:63] [Container] [2025-12-18 05:04:31,138] INFO: [search policy] debugging node 5d26593dc0be41198c087bebb3d4cf74
+[2025-12-18 05:04:31,138] [run.py:63] [Container] [2025-12-18 05:04:31,138] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:05:42,200] [run.py:63] [Container] [2025-12-18 05:05:42,199] INFO: Debugged node 5d26593dc0be41198c087bebb3d4cf74 to create new node 7efe0cb1fe524617a6096e9e6e408069
+[2025-12-18 05:05:42,200] [run.py:63] [Container] [2025-12-18 05:05:42,200] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:07:11,720] [run.py:63] [Container] [2025-12-18 05:07:11,719] INFO: Agent is parsing execution results for node 7efe0cb1fe524617a6096e9e6e408069
+[2025-12-18 05:07:23,163] [run.py:63] [Container] [2025-12-18 05:07:23,163] INFO: Parsed results: Node 7efe0cb1fe524617a6096e9e6e408069 is not buggy
+[2025-12-18 05:07:23,163] [run.py:63] [Container] [2025-12-18 05:07:23,163] INFO: Node 7efe0cb1fe524617a6096e9e6e408069 is not the best node
+[2025-12-18 05:07:23,163] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:07:23,182] [run.py:63] [Container] [2025-12-18 05:07:23,182] INFO: [search policy] debugging node 5ca505b866a947b28e766706d25ba327
+[2025-12-18 05:07:23,182] [run.py:63] [Container] [2025-12-18 05:07:23,182] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:08:49,399] [run.py:63] [Container] [2025-12-18 05:08:49,399] INFO: Debugged node 5ca505b866a947b28e766706d25ba327 to create new node 7554f3836d904e258afc1971d5b5eb9d
+[2025-12-18 05:08:49,399] [run.py:63] [Container] [2025-12-18 05:08:49,399] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:08:49,429] [run.py:63] [Container] [2025-12-18 05:08:49,428] INFO: Agent is parsing execution results for node 7554f3836d904e258afc1971d5b5eb9d
+[2025-12-18 05:08:57,378] [run.py:63] [Container] [2025-12-18 05:08:57,378] INFO: Parsed results: Node 7554f3836d904e258afc1971d5b5eb9d is buggy and/or did not produce a submission.csv
+[2025-12-18 05:08:57,378] [run.py:63] [Container] [2025-12-18 05:08:57,378] INFO: Node 7554f3836d904e258afc1971d5b5eb9d is not the best node
+[2025-12-18 05:08:57,378] [run.py:63] [Container] [2025-12-18 05:08:57,378] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:08:57,398] [run.py:63] [Container] [2025-12-18 05:08:57,398] INFO: [search policy] debugging node 38c4fc173a36470e9ac3be46c7c25263
+[2025-12-18 05:08:57,398] [run.py:63] [Container] [2025-12-18 05:08:57,398] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:10:24,341] [run.py:63] [Container] [2025-12-18 05:10:24,341] INFO: Debugged node 38c4fc173a36470e9ac3be46c7c25263 to create new node 5d9156a01dfe437b855e72aa95b44227
+[2025-12-18 05:10:24,341] [run.py:63] [Container] [2025-12-18 05:10:24,341] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:11:28,544] [run.py:63] [Container] [2025-12-18 05:11:28,544] INFO: Agent is parsing execution results for node 5d9156a01dfe437b855e72aa95b44227
+[2025-12-18 05:11:51,266] [run.py:63] [Container] [2025-12-18 05:11:51,266] INFO: Parsed results: Node 5d9156a01dfe437b855e72aa95b44227 is buggy and/or did not produce a submission.csv
+[2025-12-18 05:11:51,267] [run.py:63] [Container] [2025-12-18 05:11:51,266] INFO: Node 5d9156a01dfe437b855e72aa95b44227 is not the best node
+[2025-12-18 05:11:51,267] [run.py:63] [Container] [2025-12-18 05:11:51,266] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:11:51,287] [run.py:63] [Container] [2025-12-18 05:11:51,287] INFO: [search policy] debugging node 7554f3836d904e258afc1971d5b5eb9d
+[2025-12-18 05:11:51,287] [run.py:63] [Container] [2025-12-18 05:11:51,287] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:13:53,733] [run.py:63] [Container] [2025-12-18 05:13:53,733] INFO: Debugged node 7554f3836d904e258afc1971d5b5eb9d to create new node ab298e1bbe314676a6beaa4ae7d87c6c
+[2025-12-18 05:13:53,734] [run.py:63] [Container] [2025-12-18 05:13:53,733] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:13:53,770] [run.py:63] [Container] [2025-12-18 05:13:53,769] INFO: Agent is parsing execution results for node ab298e1bbe314676a6beaa4ae7d87c6c
+[2025-12-18 05:14:06,555] [run.py:63] [Container] [2025-12-18 05:14:06,555] INFO: Parsed results: Node ab298e1bbe314676a6beaa4ae7d87c6c is buggy and/or did not produce a submission.csv
+[2025-12-18 05:14:06,555] [run.py:63] [Container] [2025-12-18 05:14:06,555] INFO: Node ab298e1bbe314676a6beaa4ae7d87c6c is not the best node
+[2025-12-18 05:14:06,555] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:14:06,578] [run.py:63] [Container] [2025-12-18 05:14:06,578] INFO: [search policy] debugging node e9f7d454922e4723ba21d43c7fd615c3
+[2025-12-18 05:14:06,578] [run.py:63] [Container] [2025-12-18 05:14:06,578] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:15:27,273] [run.py:63] [Container] [2025-12-18 05:15:27,273] INFO: Debugged node e9f7d454922e4723ba21d43c7fd615c3 to create new node d2a1617452ee4dc7be9b6521b810aa00
+[2025-12-18 05:15:27,273] [run.py:63] [Container] [2025-12-18 05:15:27,273] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:16:04,855] [run.py:63] [Container] [2025-12-18 05:16:04,854] INFO: Agent is parsing execution results for node d2a1617452ee4dc7be9b6521b810aa00
+[2025-12-18 05:16:20,943] [run.py:63] [Container] [2025-12-18 05:16:20,943] INFO: Parsed results: Node d2a1617452ee4dc7be9b6521b810aa00 is not buggy
+[2025-12-18 05:16:20,943] [run.py:63] [Container] [2025-12-18 05:16:20,943] INFO: Node d2a1617452ee4dc7be9b6521b810aa00 is not the best node
+[2025-12-18 05:16:20,943] [run.py:63] [Container] [2025-12-18 05:16:20,943] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:16:20,966] [run.py:63] [Container] [2025-12-18 05:16:20,966] INFO: [search policy] debugging node ab298e1bbe314676a6beaa4ae7d87c6c
+[2025-12-18 05:16:20,966] [run.py:63] [Container] [2025-12-18 05:16:20,966] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 05:18:29,743] [run.py:63] [Container] [2025-12-18 05:18:29,742] INFO: Debugged node ab298e1bbe314676a6beaa4ae7d87c6c to create new node 31d62db892a244629372825de075aeeb
+[2025-12-18 05:18:29,743] [run.py:63] [Container] [2025-12-18 05:18:29,743] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 05:18:29,773] [run.py:63] [Container] [2025-12-18 05:18:29,773] INFO: Agent is parsing execution results for node 31d62db892a244629372825de075aeeb
+[2025-12-18 05:18:38,038] [run.py:63] [Container] [2025-12-18 05:18:38,037] INFO: Parsed results: Node 31d62db892a244629372825de075aeeb is buggy and/or did not produce a submission.csv
+[2025-12-18 05:18:38,038] [run.py:63] [Container] [2025-12-18 05:18:38,038] INFO: Node 31d62db892a244629372825de075aeeb is not the best node
+[2025-12-18 05:18:38,038] INFO: Node 99e69fd539634f5486d6b27e58109fbf is still the best node
+[2025-12-18 05:18:38,038] [run.py:63] [Container] [2025-12-18 05:18:38,038] INFO: Solution tree
+◍ bug (ID: f6637b88f52440e391cd7f3ab211ab46)
+  ◍ bug (ID: 52589c4781e84d50bae320bb0e33e7ea)
+    ◍ bug (ID: 8f85c107bb3e463294603e5ddca904a9)
+      ◍ bug (ID: 5d26593dc0be41198c087bebb3d4cf74)
+        ● 4.115 (ID: 7efe0cb1fe524617a6096e9e6e408069)
+◍ bug (ID: 7f72d63aaa094ebab189d00846d9073a)
+  ◍ bug (ID: 4fb1152c6fe54bfc89c0956871f83908)
+    ◍ bug (ID: e9f7d454922e4723ba21d43c7fd615c3)
+      ● 7490.504 (ID: d2a1617452ee4dc7be9b6521b810aa00)
+◍ bug (ID: fa273f3a62fa4774bb052896b7169adb)
+  ◍ bug (ID: e230961a8cc1483789ad1e06bdc55c9a)
+    ◍ bug (ID: 38c4fc173a36470e9ac3be46c7c25263)
+      ◍ bug (ID: 5d9156a01dfe437b855e72aa95b44227)
+◍ bug (ID: 9b73dd6a0990471d80f4a9d41ef22cee)
+  ● 2.820 (best) (ID: 99e69fd539634f5486d6b27e58109fbf)
+◍ bug (ID: 3c251e9fba2041acb6e591e3289c0626)
+  ◍ bug (ID: 5ca505b866a947b28e766706d25ba327)
+    ◍ bug (ID: 7554f3836d904e258afc1971d5b5eb9d)
+      ◍ bug (ID: ab298e1bbe314676a6beaa4ae7d87c6c)
+        ◍ bug (ID: 31d62db892a244629372825de075aeeb)
+[2025-12-18 05:18:38,511] [run.py:63] [Container] + '[' 0 -eq 124 ']'
+[2025-12-18 05:18:38,690] [run.py:151] Run completed in 3124.73 seconds.
+[2025-12-18 05:18:38,690] [run.py:73] Cleaning up container: competition-smartphone-decimeter-2022-2025-12-18T04-26-33-GMT-e864d8d547f844e09a90ac192a9cb9ca
+[2025-12-18 05:18:49,212] [run.py:78] Container competition-smartphone-decimeter-2022-2025-12-18T04-26-33-GMT-e864d8d547f844e09a90ac192a9cb9ca stopped and removed.
+[2025-12-18 05:18:49,212] [run_agent.py:74] [Worker 0] Finished running seed 0 for smartphone-decimeter-2022 and agent aide

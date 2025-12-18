@@ -1,0 +1,168 @@
+[2025-12-18 04:23:40,413] INFO: Starting run "exp"
+[2025-12-18 04:30:33,236] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:30:33,236] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:31:23,164] INFO: Drafted new node defe22e063d44c8d93526eab09be3ac3
+[2025-12-18 04:31:23,164] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:31:23,853] INFO: Agent is parsing execution results for node defe22e063d44c8d93526eab09be3ac3
+[2025-12-18 04:31:36,515] INFO: Parsed results: Node defe22e063d44c8d93526eab09be3ac3 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:31:36,521] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:31:36,522] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:32:19,082] INFO: Drafted new node b5275564c53049328c267cac085c0372
+[2025-12-18 04:32:19,082] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:32:22,590] INFO: Agent is parsing execution results for node b5275564c53049328c267cac085c0372
+[2025-12-18 04:32:30,317] INFO: Parsed results: Node b5275564c53049328c267cac085c0372 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:32:30,323] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:32:30,323] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:33:14,887] INFO: Drafted new node e829aa79da8c4170a8c6fdc523bd1395
+[2025-12-18 04:33:14,887] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:33:15,406] INFO: Agent is parsing execution results for node e829aa79da8c4170a8c6fdc523bd1395
+[2025-12-18 04:33:25,060] INFO: Parsed results: Node e829aa79da8c4170a8c6fdc523bd1395 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:33:25,066] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:33:25,066] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:34:31,925] INFO: Drafted new node 19d63a6fe07b458c8dad286fb2b37f15
+[2025-12-18 04:34:31,926] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:35:47,647] INFO: Agent is parsing execution results for node 19d63a6fe07b458c8dad286fb2b37f15
+[2025-12-18 04:35:59,406] INFO: Parsed results: Node 19d63a6fe07b458c8dad286fb2b37f15 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:35:59,413] INFO: [search policy] drafting new node (not enough drafts)
+[2025-12-18 04:35:59,413] INFO: Agent is generating code, parent node type: <class 'NoneType'>
+[2025-12-18 04:36:38,262] INFO: Drafted new node 22a9ddc234eb4ffabf69d14ab55b17f4
+[2025-12-18 04:36:38,262] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:36:38,963] INFO: Agent is parsing execution results for node 22a9ddc234eb4ffabf69d14ab55b17f4
+[2025-12-18 04:36:51,588] INFO: Parsed results: Node 22a9ddc234eb4ffabf69d14ab55b17f4 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:36:51,595] INFO: [search policy] debugging node e829aa79da8c4170a8c6fdc523bd1395
+[2025-12-18 04:36:51,595] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:37:44,622] INFO: Debugged node e829aa79da8c4170a8c6fdc523bd1395 to create new node 7856e50f165141df8fdcbd357849d529
+[2025-12-18 04:37:44,623] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:37:45,290] INFO: Agent is parsing execution results for node 7856e50f165141df8fdcbd357849d529
+[2025-12-18 04:38:02,680] INFO: Parsed results: Node 7856e50f165141df8fdcbd357849d529 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:38:02,689] INFO: [search policy] debugging node 7856e50f165141df8fdcbd357849d529
+[2025-12-18 04:38:02,689] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:38:53,991] INFO: Debugged node 7856e50f165141df8fdcbd357849d529 to create new node a2ab94e52f3a4c3a9174cac8fad2170a
+[2025-12-18 04:38:53,991] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:38:54,677] INFO: Agent is parsing execution results for node a2ab94e52f3a4c3a9174cac8fad2170a
+[2025-12-18 04:39:03,153] INFO: Parsed results: Node a2ab94e52f3a4c3a9174cac8fad2170a is buggy and/or did not produce a submission.csv
+[2025-12-18 04:39:03,163] INFO: [search policy] debugging node b5275564c53049328c267cac085c0372
+[2025-12-18 04:39:03,163] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:40:31,085] INFO: Debugged node b5275564c53049328c267cac085c0372 to create new node 231495f0f19748d1835596d64ca8ad7c
+[2025-12-18 04:40:31,085] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:40:36,425] INFO: Agent is parsing execution results for node 231495f0f19748d1835596d64ca8ad7c
+[2025-12-18 04:40:42,292] INFO: Parsed results: Node 231495f0f19748d1835596d64ca8ad7c is not buggy
+[2025-12-18 04:40:42,293] INFO: Node 231495f0f19748d1835596d64ca8ad7c is the best node so far
+[2025-12-18 04:40:42,302] INFO: [search policy] debugging node 22a9ddc234eb4ffabf69d14ab55b17f4
+[2025-12-18 04:40:42,303] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:42:10,952] INFO: Debugged node 22a9ddc234eb4ffabf69d14ab55b17f4 to create new node d01ddcab736440fcabae9529a5b39d18
+[2025-12-18 04:42:10,953] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:42:11,665] INFO: Agent is parsing execution results for node d01ddcab736440fcabae9529a5b39d18
+[2025-12-18 04:42:24,727] INFO: Parsed results: Node d01ddcab736440fcabae9529a5b39d18 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:42:24,727] INFO: Node d01ddcab736440fcabae9529a5b39d18 is not the best node
+[2025-12-18 04:42:24,727] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:42:24,736] INFO: [search policy] debugging node 19d63a6fe07b458c8dad286fb2b37f15
+[2025-12-18 04:42:24,737] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:43:24,922] INFO: Debugged node 19d63a6fe07b458c8dad286fb2b37f15 to create new node a6e0ede44fcb4c2591a95dd1bf4247e0
+[2025-12-18 04:43:24,923] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:43:25,601] INFO: Agent is parsing execution results for node a6e0ede44fcb4c2591a95dd1bf4247e0
+[2025-12-18 04:43:35,328] INFO: Parsed results: Node a6e0ede44fcb4c2591a95dd1bf4247e0 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:43:35,328] INFO: Node a6e0ede44fcb4c2591a95dd1bf4247e0 is not the best node
+[2025-12-18 04:43:35,328] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:43:35,339] INFO: [search policy] debugging node defe22e063d44c8d93526eab09be3ac3
+[2025-12-18 04:43:35,339] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:44:40,432] INFO: Debugged node defe22e063d44c8d93526eab09be3ac3 to create new node e5f0a36ec7d148e2a45ab681f2204c39
+[2025-12-18 04:44:40,432] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:44:41,111] INFO: Agent is parsing execution results for node e5f0a36ec7d148e2a45ab681f2204c39
+[2025-12-18 04:44:57,621] INFO: Parsed results: Node e5f0a36ec7d148e2a45ab681f2204c39 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:44:57,621] INFO: Node e5f0a36ec7d148e2a45ab681f2204c39 is not the best node
+[2025-12-18 04:44:57,622] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:44:57,632] INFO: [search policy] debugging node a6e0ede44fcb4c2591a95dd1bf4247e0
+[2025-12-18 04:44:57,632] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:46:05,555] INFO: Debugged node a6e0ede44fcb4c2591a95dd1bf4247e0 to create new node 50826aaa8d4f488fa39ff996bf6140a6
+[2025-12-18 04:46:05,556] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:46:06,227] INFO: Agent is parsing execution results for node 50826aaa8d4f488fa39ff996bf6140a6
+[2025-12-18 04:46:15,433] INFO: Parsed results: Node 50826aaa8d4f488fa39ff996bf6140a6 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:46:15,433] INFO: Node 50826aaa8d4f488fa39ff996bf6140a6 is not the best node
+[2025-12-18 04:46:15,433] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:46:15,444] INFO: [search policy] debugging node d01ddcab736440fcabae9529a5b39d18
+[2025-12-18 04:46:15,444] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:47:14,859] INFO: Debugged node d01ddcab736440fcabae9529a5b39d18 to create new node 5d9ad511d88c4765b6b4bbbc174a96af
+[2025-12-18 04:47:14,859] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:47:15,532] INFO: Agent is parsing execution results for node 5d9ad511d88c4765b6b4bbbc174a96af
+[2025-12-18 04:47:25,102] INFO: Parsed results: Node 5d9ad511d88c4765b6b4bbbc174a96af is buggy and/or did not produce a submission.csv
+[2025-12-18 04:47:25,102] INFO: Node 5d9ad511d88c4765b6b4bbbc174a96af is not the best node
+[2025-12-18 04:47:25,102] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:47:25,113] INFO: [search policy] debugging node 50826aaa8d4f488fa39ff996bf6140a6
+[2025-12-18 04:47:25,113] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:48:26,610] INFO: Debugged node 50826aaa8d4f488fa39ff996bf6140a6 to create new node 533cc9e8660042d29c999e5f9c72c0fe
+[2025-12-18 04:48:26,610] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:48:27,121] INFO: Agent is parsing execution results for node 533cc9e8660042d29c999e5f9c72c0fe
+[2025-12-18 04:48:33,731] INFO: Parsed results: Node 533cc9e8660042d29c999e5f9c72c0fe is buggy and/or did not produce a submission.csv
+[2025-12-18 04:48:33,731] INFO: Node 533cc9e8660042d29c999e5f9c72c0fe is not the best node
+[2025-12-18 04:48:33,731] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:48:33,743] INFO: [search policy] debugging node a2ab94e52f3a4c3a9174cac8fad2170a
+[2025-12-18 04:48:33,743] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:49:26,884] INFO: Debugged node a2ab94e52f3a4c3a9174cac8fad2170a to create new node 728f1e4394fc4be0baf7e48f2eecc24c
+[2025-12-18 04:49:26,884] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:49:27,564] INFO: Agent is parsing execution results for node 728f1e4394fc4be0baf7e48f2eecc24c
+[2025-12-18 04:49:46,051] INFO: Parsed results: Node 728f1e4394fc4be0baf7e48f2eecc24c is buggy and/or did not produce a submission.csv
+[2025-12-18 04:49:46,051] INFO: Node 728f1e4394fc4be0baf7e48f2eecc24c is not the best node
+[2025-12-18 04:49:46,051] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:49:46,063] INFO: [search policy] debugging node 728f1e4394fc4be0baf7e48f2eecc24c
+[2025-12-18 04:49:46,063] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:50:35,296] INFO: Debugged node 728f1e4394fc4be0baf7e48f2eecc24c to create new node ad0927cb650343ccac46e07dd9daa834
+[2025-12-18 04:50:35,296] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:50:35,809] INFO: Agent is parsing execution results for node ad0927cb650343ccac46e07dd9daa834
+[2025-12-18 04:50:50,454] INFO: Parsed results: Node ad0927cb650343ccac46e07dd9daa834 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:50:50,454] INFO: Node ad0927cb650343ccac46e07dd9daa834 is not the best node
+[2025-12-18 04:50:50,455] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:50:50,467] INFO: [search policy] debugging node 5d9ad511d88c4765b6b4bbbc174a96af
+[2025-12-18 04:50:50,467] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:51:50,368] INFO: Debugged node 5d9ad511d88c4765b6b4bbbc174a96af to create new node 8b88f6c6af5f40448f95a2d6aa334c89
+[2025-12-18 04:51:50,368] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:51:51,056] INFO: Agent is parsing execution results for node 8b88f6c6af5f40448f95a2d6aa334c89
+[2025-12-18 04:52:03,129] INFO: Parsed results: Node 8b88f6c6af5f40448f95a2d6aa334c89 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:52:03,130] INFO: Node 8b88f6c6af5f40448f95a2d6aa334c89 is not the best node
+[2025-12-18 04:52:03,130] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:52:03,143] INFO: [search policy] debugging node ad0927cb650343ccac46e07dd9daa834
+[2025-12-18 04:52:03,143] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:53:01,718] INFO: Debugged node ad0927cb650343ccac46e07dd9daa834 to create new node 0cb49e9af3ed4119828f2517f0f90838
+[2025-12-18 04:53:01,718] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:53:02,230] INFO: Agent is parsing execution results for node 0cb49e9af3ed4119828f2517f0f90838
+[2025-12-18 04:53:16,135] INFO: Parsed results: Node 0cb49e9af3ed4119828f2517f0f90838 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:53:16,135] INFO: Node 0cb49e9af3ed4119828f2517f0f90838 is not the best node
+[2025-12-18 04:53:16,135] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:53:16,149] INFO: [search policy] debugging node 0cb49e9af3ed4119828f2517f0f90838
+[2025-12-18 04:53:16,149] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:54:15,670] INFO: Debugged node 0cb49e9af3ed4119828f2517f0f90838 to create new node fbfb7e70466e448da6e046c71b3c88e6
+[2025-12-18 04:54:15,670] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:54:16,350] INFO: Agent is parsing execution results for node fbfb7e70466e448da6e046c71b3c88e6
+[2025-12-18 04:54:24,940] INFO: Parsed results: Node fbfb7e70466e448da6e046c71b3c88e6 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:54:24,940] INFO: Node fbfb7e70466e448da6e046c71b3c88e6 is not the best node
+[2025-12-18 04:54:24,940] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:54:24,954] INFO: [search policy] debugging node fbfb7e70466e448da6e046c71b3c88e6
+[2025-12-18 04:54:24,955] INFO: Agent is generating code, parent node type: <class 'aide.journal.Node'>
+[2025-12-18 04:55:19,622] INFO: Debugged node fbfb7e70466e448da6e046c71b3c88e6 to create new node 236d78383b7a4112a2c99eca9c551e27
+[2025-12-18 04:55:19,622] INFO: REPL is executing code (reset_session=True)
+[2025-12-18 04:55:20,299] INFO: Agent is parsing execution results for node 236d78383b7a4112a2c99eca9c551e27
+[2025-12-18 04:55:30,911] INFO: Parsed results: Node 236d78383b7a4112a2c99eca9c551e27 is buggy and/or did not produce a submission.csv
+[2025-12-18 04:55:30,911] INFO: Node 236d78383b7a4112a2c99eca9c551e27 is not the best node
+[2025-12-18 04:55:30,911] INFO: Node 231495f0f19748d1835596d64ca8ad7c is still the best node
+[2025-12-18 04:55:30,912] INFO: Solution tree
+◍ bug (ID: defe22e063d44c8d93526eab09be3ac3)
+  ◍ bug (ID: e5f0a36ec7d148e2a45ab681f2204c39)
+◍ bug (ID: b5275564c53049328c267cac085c0372)
+  ● 4.687 (best) (ID: 231495f0f19748d1835596d64ca8ad7c)
+◍ bug (ID: e829aa79da8c4170a8c6fdc523bd1395)
+  ◍ bug (ID: 7856e50f165141df8fdcbd357849d529)
+    ◍ bug (ID: a2ab94e52f3a4c3a9174cac8fad2170a)
+      ◍ bug (ID: 728f1e4394fc4be0baf7e48f2eecc24c)
+        ◍ bug (ID: ad0927cb650343ccac46e07dd9daa834)
+          ◍ bug (ID: 0cb49e9af3ed4119828f2517f0f90838)
+            ◍ bug (ID: fbfb7e70466e448da6e046c71b3c88e6)
+              ◍ bug (ID: 236d78383b7a4112a2c99eca9c551e27)
+◍ bug (ID: 19d63a6fe07b458c8dad286fb2b37f15)
+  ◍ bug (ID: a6e0ede44fcb4c2591a95dd1bf4247e0)
+    ◍ bug (ID: 50826aaa8d4f488fa39ff996bf6140a6)
+      ◍ bug (ID: 533cc9e8660042d29c999e5f9c72c0fe)
+◍ bug (ID: 22a9ddc234eb4ffabf69d14ab55b17f4)
+  ◍ bug (ID: d01ddcab736440fcabae9529a5b39d18)
+    ◍ bug (ID: 5d9ad511d88c4765b6b4bbbc174a96af)
+      ◍ bug (ID: 8b88f6c6af5f40448f95a2d6aa334c89)
+

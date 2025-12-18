@@ -1,0 +1,15 @@
++ LOGS_DIR=/home/logs
++ mkdir -p /home/logs
++ find /home -path /home/data -prune -o -exec chmod a+rw '{}' ';'
++ ls -l /home
+total 48
+drwxrwxrwx 1 root    root    4096 Dec 16 17:55 agent
+drwxrwxrwx 1 root    root    4096 Dec 16 05:51 code
+drwxr-xr-x 2 root    root    4096 Dec 17 22:17 data
+-rw-rw-rw- 1 root    root    2789 Nov 27 03:53 instructions.txt
+-rw-rw-rw- 1 root    root    2586 Nov 27 03:53 instructions_obfuscated.txt
+drwxrwxrwx 1 root    root    4096 Dec 17 22:24 logs
+drwxrwxrwx 1 nonroot nonroot 4096 Dec 16 01:40 nonroot
+drwxrwxrwx 1 root    root    4096 Dec 16 01:40 submission
+-rw-rw-rw- 1 root    root     494 Nov 27 03:53 validate_submission.sh
++ /opt/conda/bin/conda run -n mleb python /private/grading_server.py

@@ -8,9 +8,9 @@ runs/*/*/
 runs/*/metadata.json
 
 # Re-include metadata.json, dolos, and grading reports
-!runs/*/dolos
-!runs/**/*_grading_report.json
-!runs/**/grading_report_*.json
+#!runs/*/dolos
+#!runs/**/*_grading_report.json
+#!runs/**/grading_report_*.json
 
 cache/
 # MLE-bench [END]

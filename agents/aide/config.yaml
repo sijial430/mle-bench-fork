@@ -49,7 +49,6 @@ aide/gpt-5-mini:
     agent.code.temp: 1
     agent.feedback.model: gpt-5-mini-2025-08-07
     agent.feedback.temp: 1
-    agent.steps: 8
   env_vars:
     <<: *env_vars
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

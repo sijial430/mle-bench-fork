@@ -28,7 +28,7 @@
         }
 
         .tree-panel {
-            width: 350px;
+            width: 450px;
             background: #252526;
             border-right: 1px solid #3e3e42;
             overflow-y: auto;
@@ -39,6 +39,77 @@
             color: #569cd6;
             margin-bottom: 15px;
             font-size: 18px;
+        }
+
+        .draft-container {
+            margin-bottom: 25px;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .draft-header {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: #ffffff;
+            padding: 12px 15px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .draft-header:hover {
+            background: linear-gradient(135deg, #3a6298 0%, #2e4c82 100%);
+        }
+
+        .draft-header::before {
+            content: '▼';
+            font-size: 10px;
+            margin-right: 8px;
+            transition: transform 0.2s;
+        }
+
+        .draft-header.collapsed::before {
+            transform: rotate(-90deg);
+        }
+
+        .draft-stats {
+            font-size: 11px;
+            color: #b0c4de;
+            font-weight: normal;
+        }
+
+        .draft-content {
+            background: #252526;
+            max-height: 5000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .draft-content.collapsed {
+            max-height: 0;
+        }
+
+        .branch-badge {
+            display: inline-block;
+            background: #ffd700;
+            color: #1e1e1e;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+
+        .tree-connector {
+            color: #569cd6;
+            font-family: monospace;
+            margin-right: 4px;
+            font-size: 12px;
         }
 
         .tree-node {
@@ -75,6 +146,15 @@
 
         .node-item.buggy.active {
             background: #5a1a1a;
+        }
+
+        .node-item.branching {
+            border-left-color: #ffd700;
+            background: #3a3a2a;
+        }
+
+        .node-item.branching.active {
+            background: #5a5a1a;
         }
 
         .node-label {
@@ -172,6 +252,45 @@
         .stat-subtext {
             font-size: 13px;
             color: #858585;
+        }
+
+        .breadcrumb-nav {
+            background: #2d2d30;
+            padding: 12px 20px;
+            border-bottom: 1px solid #3e3e42;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .breadcrumb {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #858585;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #569cd6;
+            transition: color 0.2s;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        .breadcrumb-item:hover {
+            color: #4ec9b0;
+            background: #3e3e42;
+        }
+
+        .breadcrumb-item.current {
+            color: #ffffff;
+            background: #0e639c;
+            font-weight: 600;
+        }
+
+        .breadcrumb-separator {
+            color: #3e3e42;
         }
 
         .header {
@@ -481,9 +600,27 @@
             <div class="stats-panel">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Total Steps</div>
+                        <div class="stat-label">Total Nodes</div>
                         <div class="stat-value">12</div>
-                        <div class="stat-subtext">All execution attempts</div>
+                        <div class="stat-subtext">5 drafts</div>
+                    </div>
+
+                    <div class="stat-card valid">
+                        <div class="stat-label">Linear Drafts</div>
+                        <div class="stat-value">5</div>
+                        <div class="stat-subtext">Sequential chains</div>
+                    </div>
+
+                    <div class="stat-card recovery">
+                        <div class="stat-label">Branching Drafts</div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-subtext">0 branch points</div>
+                    </div>
+
+                    <div class="stat-card recovery">
+                        <div class="stat-label">Max Branches</div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-subtext">At single point</div>
                     </div>
 
                     <div class="stat-card valid">
@@ -497,25 +634,11 @@
                         <div class="stat-value">11</div>
                         <div class="stat-subtext">91.7% of total</div>
                     </div>
-
-                    <div class="stat-card recovery">
-                        <div class="stat-label">Avg Steps to Recovery</div>
-                        <div class="stat-value">0.0</div>
-                        <div class="stat-subtext">After encountering bugs</div>
-                    </div>
-
-                    <div class="stat-card buggy">
-                        <div class="stat-label">Failed Debugging</div>
-                        <div class="stat-value">11</div>
-                        <div class="stat-subtext">100.0% never recovered</div>
-                    </div>
-
-                    <div class="stat-card recovery">
-                        <div class="stat-label">Successful Debugging</div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-subtext">Bugs that were fixed</div>
-                    </div>
                 </div>
+            </div>
+
+            <div class="breadcrumb-nav">
+                <div class="breadcrumb" id="breadcrumb"></div>
             </div>
 
             <div class="header">
@@ -635,7 +758,7 @@
                 "index": 5,
                 "step": 5,
                 "id": "1fed7d6bc6bd40cb9320d13368b16cd6",
-                "parent_id": null,
+                "parent_id": "87bd8f037d784512ac606ee9ef10b8cf",
                 "plan": "I will replace the heavy pretrained CNN feature extraction (which can fail in offline/CPU-only or restricted environments) with a lightweight, deterministic color-histogram feature extractor that runs quickly on CPU. Then I will train a multinomial Logistic Regression with 5-fold stratified CV on these histogram features, report CV log-loss, and write averaged test-set probabilities to ./submission/submission.csv using the exact column order from sample_submission.csv. This approach avoids external pretrained weights, runs fast, and guarantees a valid submission file.",
                 "code": "#!/usr/bin/env python3\nimport os\nimport sys\nimport time\nimport numpy as np\nimport pandas as pd\nfrom PIL import Image\nfrom tqdm import tqdm\nfrom sklearn.model_selection import StratifiedKFold\nfrom sklearn.preprocessing import StandardScaler, LabelEncoder\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import log_loss\n\n# Paths\nINPUT_DIR = \"./input\"\nTRAIN_DIR = os.path.join(INPUT_DIR, \"train\")\nTEST_DIR = os.path.join(INPUT_DIR, \"test\")\nLABELS_PATH = os.path.join(INPUT_DIR, \"labels.csv\")\nSAMPLE_SUB_PATH = os.path.join(INPUT_DIR, \"sample_submission.csv\")\nSUBMISSION_DIR = \"./submission\"\nos.makedirs(SUBMISSION_DIR, exist_ok=True)\nSUBMISSION_PATH = os.path.join(SUBMISSION_DIR, \"submission.csv\")\n\n# Config\nN_FOLDS = 5\nRANDOM_STATE = 42\nBINS_PER_CHANNEL = 16\nRESIZE_TO = (128, 128)  # resize images to this for faster processing\n\n\ndef load_image(path, resize=RESIZE_TO):\n    try:\n        with Image.open(path) as img:\n            img = img.convert(\"RGB\")\n            if resize is not None:\n                img = img.resize(resize)\n            return np.array(img)\n    except Exception as e:\n        # In case of a corrupted image, return an array of zeros\n        print(f\"Warning: failed to load image {path}: {e}\")\n        return np.zeros((resize[1], resize[0], 3), dtype=np.uint8)\n\n\ndef extract_color_hist_features(image_array, bins_per_channel=BINS_PER_CHANNEL):\n    # image_array: H x W x 3, dtype uint8\n    # compute normalized histogram per channel\n    chans = []\n    for ch in range(3):\n        hist, _ = np.histogram(\n            image_array[:, :, ch].ravel(),\n            bins=bins_per_channel,\n            range=(0, 256),\n            density=True,\n        )\n        chans.append(hist)\n    feat = np.concatenate(chans).astype(np.float32)\n    return feat  # length = 3 * bins_per_channel\n\n\ndef extract_features_for_paths(paths, bins_per_channel=BINS_PER_CHANNEL):\n    n = len(paths)\n    feat_dim = 3 * bins_per_channel\n    feats = np.zeros((n, feat_dim), dtype=np.float32)\n    for i, p in enumerate(tqdm(paths, desc=\"Extracting features\", unit=\"img\")):\n        img = load_image(p)\n        feats[i] = extract_color_hist_features(img, bins_per_channel=bins_per_channel)\n    return feats\n\n\ndef main():\n    start_time = time.time()\n    # Read labels and sample submission\n    labels_df = pd.read_csv(LABELS_PATH)\n    sample_sub = pd.read_csv(SAMPLE_SUB_PATH)\n\n    # Breed list from sample submission columns (preserve order)\n    breed_list = list(sample_sub.columns)[1:]\n\n    # Label encoder aligned to sample submission order\n    le = LabelEncoder()\n    le.fit(breed_list)\n\n    # Build train file paths and targets\n    train_ids = labels_df[\"id\"].values\n    train_breeds = labels_df[\"breed\"].values\n    train_paths = [os.path.join(TRAIN_DIR, f\"{pid}.jpg\") for pid in train_ids]\n\n    # transform breeds to indices (LabelEncoder expects known classes)\n    # If there are breeds in train not in sample_sub, raise informative error\n    unseen = set(train_breeds) - set(breed_list)\n    if len(unseen) > 0:\n        raise ValueError(\n            f\"Found breeds in labels.csv not in sample_submission: {unseen}\"\n        )\n\n    y = le.transform(train_breeds)\n\n    # Build test file paths and ids\n    test_ids = sample_sub[\"id\"].values\n    test_paths = [os.path.join(TEST_DIR, f\"{tid}.jpg\") for tid in test_ids]\n\n    print(\n        f\"Num train: {len(train_paths)}, Num test: {len(test_paths)}, Num classes: {len(breed_list)}\"\n    )\n\n    # Extract features (color histograms)\n    print(\"Extracting train features (color histograms)...\")\n    X_train = extract_features_for_paths(train_paths, bins_per_channel=BINS_PER_CHANNEL)\n    print(\"Extracting test features (color histograms)...\")\n    X_test = extract_features_for_paths(test_paths, bins_per_channel=BINS_PER_CHANNEL)\n\n    # Scale features\n    scaler = StandardScaler()\n    X_train_scaled = scaler.fit_transform(X_train)\n    X_test_scaled = scaler.transform(X_test)\n\n    # 5-fold stratified CV with LogisticRegression\n    skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE)\n    oof_probs = np.zeros((X_train.shape[0], len(breed_list)), dtype=np.float64)\n    test_probs = np.zeros((X_test.shape[0], len(breed_list)), dtype=np.float64)\n    val_losses = []\n\n    fold_num = 0\n    for train_idx, val_idx in skf.split(X_train_scaled, y):\n        fold_num += 1\n        print(\n            f\"Fold {fold_num}/{N_FOLDS} - train {len(train_idx)} / val {len(val_idx)}\"\n        )\n        X_tr, X_val = X_train_scaled[train_idx], X_train_scaled[val_idx]\n        y_tr, y_val = y[train_idx], y[val_idx]\n\n        clf = LogisticRegression(\n            C=1.0,\n            multi_class=\"multinomial\",\n            solver=\"saga\",\n            max_iter=2000,\n            verbose=0,\n            n_jobs=-1,\n            random_state=RANDOM_STATE,\n        )\n        clf.fit(X_tr, y_tr)\n        val_pred = clf.predict_proba(X_val)\n        oof_probs[val_idx] = val_pred\n        loss = log_loss(y_val, val_pred, labels=range(len(breed_list)))\n        val_losses.append(loss)\n        print(f\"  Fold {fold_num} log_loss: {loss:.6f}\")\n\n        # test predictions\n        test_pred = clf.predict_proba(X_test_scaled)\n        test_probs += test_pred\n\n    # Average test predictions\n    test_probs /= N_FOLDS\n    mean_cv_loss = float(np.mean(val_losses))\n    std_cv_loss = float(np.std(val_losses))\n    print(f\"\\nMean CV log_loss: {mean_cv_loss:.6f} \u00b1 {std_cv_loss:.6f}\")\n\n    # Write submission file using same column order as sample_submission\n    submission_df = pd.DataFrame(test_probs, columns=breed_list)\n    submission_df.insert(0, \"id\", test_ids)\n    submission_df = submission_df[[\"id\"] + breed_list]\n    submission_df.to_csv(SUBMISSION_PATH, index=False)\n    print(f\"Submission saved to {SUBMISSION_PATH}\")\n\n    # Additionally print overall OOF log loss\n    oof_loss = log_loss(y, oof_probs, labels=range(len(breed_list)))\n    print(f\"OOF log_loss (full): {oof_loss:.6f}\")\n\n    elapsed = time.time() - start_time\n    print(f\"Total time: {elapsed/60:.2f} minutes\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
                 "exec_time": 0.5315654277801514,
@@ -654,7 +777,7 @@
                 "index": 6,
                 "step": 6,
                 "id": "a5d1ade1bbac483a89f08052ddcad2d6",
-                "parent_id": null,
+                "parent_id": "a01f8b0e1d3a4c9e9648e72a23f6b26a",
                 "plan": "I'll replace the heavy pretrained CNN feature extractor (which can fail due to missing GPU or unavailable weights) with a lightweight, robust image feature pipeline based on per-channel color histograms and simple statistics. These handcrafted features are fast to compute, avoid internet/GPU dependencies, and will be scaled and reduced with PCA before training a LightGBM multiclass model with 5-fold stratified CV. The script computes CV multi-class log loss, prints it, and writes a submission CSV at ./submission/submission.csv matching the sample submission format.",
                 "code": "#!/usr/bin/env python3\nimport os\nimport time\nfrom pathlib import Path\nimport numpy as np\nimport pandas as pd\nfrom PIL import Image\nfrom tqdm import tqdm\nfrom sklearn.preprocessing import StandardScaler, LabelEncoder\nfrom sklearn.decomposition import PCA\nfrom sklearn.model_selection import StratifiedKFold\nfrom sklearn.metrics import log_loss\nimport lightgbm as lgb\nimport random\n\n# Config\nSEED = 42\nrandom.seed(SEED)\nnp.random.seed(SEED)\n\nINPUT_DIR = Path(\"input\")\nTRAIN_DIR = INPUT_DIR / \"train\"\nTEST_DIR = INPUT_DIR / \"test\"\nLABELS_FILE = INPUT_DIR / \"labels.csv\"\nSAMPLE_SUB_FILE = INPUT_DIR / \"sample_submission.csv\"\nSUBMISSION_DIR = Path(\"submission\")\nSUBMISSION_DIR.mkdir(parents=True, exist_ok=True)\nSUBMISSION_FILE = SUBMISSION_DIR / \"submission.csv\"\n\n# Feature settings\nRESIZE = (128, 128)  # resize images for consistent histogram computation\nBINS_PER_CHANNEL = 32  # histogram bins per channel\nPCA_COMPONENTS = 50\nN_FOLDS = 5\n\n\ndef read_image(path):\n    try:\n        img = Image.open(path).convert(\"RGB\")\n        return img\n    except Exception:\n        # return a black image if failed to open\n        return Image.new(\"RGB\", RESIZE, (0, 0, 0))\n\n\ndef extract_handcrafted_features(\n    ids, folder, resize=RESIZE, bins_per_channel=BINS_PER_CHANNEL\n):\n    features = []\n    ids_out = []\n    bin_edges = np.linspace(0, 256, bins_per_channel + 1)  # 0..255 inclusive\n    for img_id in tqdm(\n        ids, desc=f\"Extract features from {Path(folder).name}\", unit=\"img\"\n    ):\n        img_path = Path(folder) / (img_id + \".jpg\")\n        img = read_image(img_path)\n        img = img.resize(resize)\n        arr = np.array(img)  # H x W x 3\n        # compute per-channel histograms (normalized)\n        ch_feats = []\n        for ch in range(3):\n            hist, _ = np.histogram(arr[:, :, ch].ravel(), bins=bin_edges, density=True)\n            ch_feats.append(hist.astype(np.float32))\n        # flatten hist\n        hist_feats = np.concatenate(ch_feats)\n        # simple stats\n        means = arr.mean(axis=(0, 1)).astype(np.float32)\n        stds = arr.std(axis=(0, 1)).astype(np.float32)\n        # aspect ratio and size\n        h, w = arr.shape[0], arr.shape[1]\n        aspect = np.array([h / (w + 1e-9), (h * w)], dtype=np.float32)\n        feat = np.concatenate([hist_feats, means, stds, aspect])\n        features.append(feat)\n        ids_out.append(img_id)\n    features = np.vstack(features)\n    return ids_out, features\n\n\ndef main():\n    t0 = time.time()\n    # Read metadata\n    labels_df = pd.read_csv(LABELS_FILE)\n    sample_sub = pd.read_csv(SAMPLE_SUB_FILE)\n    # Determine breed columns and encode labels accordingly\n    breed_cols = list(sample_sub.columns)\n    if \"id\" in breed_cols:\n        breed_cols.remove(\"id\")\n    le = LabelEncoder()\n    le.fit(breed_cols)\n    train_ids = labels_df[\"id\"].astype(str).values\n    train_breeds = labels_df[\"breed\"].values\n    y = le.transform(\n        train_breeds\n    )  # integer labels aligned with sample submission columns\n\n    test_ids = sample_sub[\"id\"].astype(str).values\n\n    # Extract features\n    train_ids_list, train_feats = extract_handcrafted_features(train_ids, TRAIN_DIR)\n    test_ids_list, test_feats = extract_handcrafted_features(test_ids, TEST_DIR)\n\n    # Ensure order matches labels/sample submission\n    if list(train_ids) != train_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(train_ids_list)}\n        order = [idx_map[id_] for id_ in train_ids]\n        train_feats = train_feats[order]\n    if list(test_ids) != test_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(test_ids_list)}\n        order = [idx_map[id_] for id_ in test_ids]\n        test_feats = test_feats[order]\n\n    # Scale + PCA\n    scaler = StandardScaler()\n    train_scaled = scaler.fit_transform(train_feats)\n    test_scaled = scaler.transform(test_feats)\n\n    n_comp = min(PCA_COMPONENTS, train_scaled.shape[1])\n    pca = PCA(n_components=n_comp, random_state=SEED)\n    train_pca = pca.fit_transform(train_scaled)\n    test_pca = pca.transform(test_scaled)\n\n    # CV and LightGBM\n    num_classes = len(breed_cols)\n    skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=SEED)\n    oof_preds = np.zeros((train_pca.shape[0], num_classes), dtype=np.float64)\n    test_preds = np.zeros((test_pca.shape[0], num_classes), dtype=np.float64)\n\n    folds = list(skf.split(train_pca, y))\n    for fold, (tr_idx, val_idx) in enumerate(folds):\n        print(f\"\\nFold {fold+1}/{N_FOLDS}\")\n        X_tr, X_val = train_pca[tr_idx], train_pca[val_idx]\n        y_tr, y_val = y[tr_idx], y[val_idx]\n\n        lgb_train = lgb.Dataset(X_tr, label=y_tr)\n        lgb_val = lgb.Dataset(X_val, label=y_val, reference=lgb_train)\n\n        params = {\n            \"objective\": \"multiclass\",\n            \"num_class\": num_classes,\n            \"metric\": \"multi_logloss\",\n            \"verbosity\": -1,\n            \"learning_rate\": 0.1,\n            \"num_leaves\": 31,\n            \"seed\": SEED + fold,\n            \"feature_fraction\": 0.9,\n            \"bagging_freq\": 1,\n            \"bagging_fraction\": 0.9,\n        }\n        bst = lgb.train(\n            params,\n            lgb_train,\n            num_boost_round=1000,\n            valid_sets=[lgb_train, lgb_val],\n            valid_names=[\"train\", \"valid\"],\n            early_stopping_rounds=50,\n            verbose_eval=100,\n        )\n        val_pred = bst.predict(X_val, num_iteration=bst.best_iteration)\n        oof_preds[val_idx] = val_pred\n        test_fold_pred = bst.predict(test_pca, num_iteration=bst.best_iteration)\n        test_preds += test_fold_pred / N_FOLDS\n\n        fold_loss = log_loss(y_val, val_pred)\n        print(f\"Fold {fold+1} log_loss: {fold_loss:.6f}\")\n\n    # CV metric\n    cv_loss = log_loss(y, oof_preds)\n    print(f\"\\nCV Multi-class Log Loss (OOF): {cv_loss:.6f}\")\n\n    # Build submission DataFrame using sample submission ordering\n    sub_df = pd.DataFrame(test_preds, columns=breed_cols)\n    sub_df.insert(0, \"id\", test_ids)\n    # Ensure exact column order\n    sub_df = sub_df[sample_sub.columns]\n    # Save submission\n    sub_df.to_csv(SUBMISSION_FILE, index=False)\n    print(f\"Submission saved to {SUBMISSION_FILE}\")\n\n    t_end = time.time()\n    print(f\"Total time elapsed: {(t_end - t0)/60:.2f} minutes\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
                 "exec_time": 0.4140927791595459,
@@ -673,7 +796,7 @@
                 "index": 7,
                 "step": 7,
                 "id": "807cb196b4fc40b8a55fcae1836ccfed",
-                "parent_id": null,
+                "parent_id": "d760f388852942b79c9ba1261b6ad960",
                 "plan": "I'll fix the LightGBM training error by switching from the low-level lgb.train call (which in this environment didn't accept early_stopping_rounds) to the sklearn API lgb.LGBMClassifier, which supports early stopping via its fit() method. I'll also ensure the breed-to-index mapping follows the sample_submission column order so the final CSV columns match exactly, run a 5-fold stratified CV using LGBM with early stopping, print CV log-loss, train a final model on all data using the average best-iteration, and save predictions to ./submission/submission.csv.",
                 "code": "import os\nimport numpy as np\nimport pandas as pd\nfrom PIL import Image\nfrom tqdm import tqdm\nimport torch\nimport torch.nn as nn\nfrom torchvision import transforms, models\nfrom torch.utils.data import Dataset, DataLoader\nfrom sklearn.model_selection import StratifiedKFold\nfrom sklearn.metrics import log_loss\nimport lightgbm as lgb\n\n# Paths\nINPUT_DIR = \"./input\"\nTRAIN_DIR = os.path.join(INPUT_DIR, \"train\")\nTEST_DIR = os.path.join(INPUT_DIR, \"test\")\nLABELS_PATH = os.path.join(INPUT_DIR, \"labels.csv\")\nSAMPLE_SUB_PATH = os.path.join(INPUT_DIR, \"sample_submission.csv\")\nSUBMISSION_DIR = \"./submission\"\nSUBMISSION_PATH = os.path.join(SUBMISSION_DIR, \"submission.csv\")\nWORKING_DIR = \"./working\"\nos.makedirs(SUBMISSION_DIR, exist_ok=True)\nos.makedirs(WORKING_DIR, exist_ok=True)\n\n# Read metadata\nlabels_df = pd.read_csv(LABELS_PATH)\nsample_sub = pd.read_csv(SAMPLE_SUB_PATH)\nbreed_cols = list(sample_sub.columns[1:])  # keep order for submission\n\n# Map breed to integer using sample_submission order to ensure submission columns match\nbreed2idx = {b: i for i, b in enumerate(breed_cols)}\nidx2breed = {i: b for b, i in breed2idx.items()}\n\n# Prepare train ids and labels (ensure mapping exists)\ntrain_ids = labels_df[\"id\"].values\nif not labels_df[\"breed\"].isin(breed2idx).all():\n    missing = set(labels_df[\"breed\"].unique()) - set(breed2idx.keys())\n    raise ValueError(\n        f\"Some breeds in labels.csv not found in sample_submission columns: {missing}\"\n    )\ntrain_labels = labels_df[\"breed\"].map(breed2idx).values\n\n# Prepare test ids in same order as sample_submission\ntest_ids = sample_sub[\"id\"].values\n\n# Device (CPU)\ndevice = torch.device(\"cpu\")\n\n\n# Image dataset for feature extraction\nclass ImageFolderDataset(Dataset):\n    def __init__(self, ids, folder, labels=None, transform=None):\n        self.ids = ids\n        self.folder = folder\n        self.labels = labels\n        self.transform = transform\n\n    def __len__(self):\n        return len(self.ids)\n\n    def __getitem__(self, idx):\n        img_id = self.ids[idx]\n        path = os.path.join(self.folder, img_id + \".jpg\")\n        img = Image.open(path).convert(\"RGB\")\n        if self.transform:\n            img = self.transform(img)\n        if self.labels is None:\n            return img_id, img\n        else:\n            return img_id, img, self.labels[idx]\n\n\n# Transforms: use ImageNet normalization and standard resnet input size\ntransform = transforms.Compose(\n    [\n        transforms.Resize(256),\n        transforms.CenterCrop(224),\n        transforms.ToTensor(),\n        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),\n    ]\n)\n\n\n# Instantiate pretrained ResNet50 as feature extractor\ndef get_resnet50_feature_extractor():\n    model = models.resnet50(pretrained=True)\n    modules = list(model.children())[:-1]  # remove last fc\n    feature_extractor = nn.Sequential(*modules)\n    feature_extractor.eval()\n    feature_extractor.to(device)\n    return feature_extractor\n\n\nfeat_model = get_resnet50_feature_extractor()\n\n\n# Function to extract features for a dataset and cache to disk\ndef extract_and_cache_features(ids, folder, cache_path, labels=None, batch_size=64):\n    if os.path.exists(cache_path):\n        print(f\"Loading cached features from {cache_path}\")\n        data = np.load(cache_path, allow_pickle=True)\n        features = data[\"features\"]\n        ids_loaded = data[\"ids\"].tolist()\n        return features, ids_loaded\n    dataset = ImageFolderDataset(ids, folder, labels=labels, transform=transform)\n    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)\n    all_ids = []\n    feats = []\n    with torch.no_grad():\n        for batch in tqdm(loader, desc=f\"Extracting features from {folder}\"):\n            if labels is None:\n                batch_ids, imgs = batch\n            else:\n                batch_ids, imgs, _ = batch\n            imgs = imgs.to(device)\n            out = feat_model(imgs)  # shape (B, 2048, 1, 1)\n            out = out.cpu().numpy()\n            out = out.reshape(out.shape[0], -1)\n            feats.append(out)\n            all_ids.extend(batch_ids)\n    features = np.vstack(feats)\n    np.savez_compressed(cache_path, features=features, ids=np.array(all_ids))\n    return features, all_ids\n\n\n# Extract features (will cache to working)\ntrain_cache = os.path.join(WORKING_DIR, \"train_feats.npz\")\ntest_cache = os.path.join(WORKING_DIR, \"test_feats.npz\")\n\ntrain_features, train_ids_extracted = extract_and_cache_features(\n    train_ids, TRAIN_DIR, train_cache, labels=train_labels, batch_size=32\n)\ntest_features, test_ids_extracted = extract_and_cache_features(\n    test_ids, TEST_DIR, test_cache, labels=None, batch_size=32\n)\n\n# Align train_features order with labels if necessary\nif list(train_ids_extracted) != list(train_ids):\n    id_to_idx = {id_: i for i, id_ in enumerate(train_ids_extracted)}\n    order = [id_to_idx[id_] for id_ in train_ids]\n    train_features = train_features[order, :]\n\n# Ensure test order matches sample_submission test_ids\nif list(test_ids_extracted) != list(test_ids):\n    id_to_idx = {id_: i for i, id_ in enumerate(test_ids_extracted)}\n    order = [id_to_idx[id_] for id_ in test_ids]\n    test_features = test_features[order, :]\n\n# Prepare data for modeling\nX = train_features.astype(np.float32)\ny = train_labels.astype(int)\nX_test = test_features.astype(np.float32)\n\nprint(\"Feature shapes:\", X.shape, X_test.shape, \"Num classes:\", len(breed_cols))\n\n# 5-fold Stratified CV with LightGBM sklearn API (LGBMClassifier) to enable early stopping\nn_splits = 5\nskf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)\nfold_scores = []\noof_preds = np.zeros((X.shape[0], len(breed_cols)), dtype=np.float32)\n\nlgb_params = {\n    \"learning_rate\": 0.05,\n    \"num_leaves\": 31,\n    \"verbosity\": -1,\n    \"random_state\": 42,\n    \"n_jobs\": 4,\n}\n\nbest_iters = []\nfold_num = 0\nfor train_idx, val_idx in skf.split(X, y):\n    fold_num += 1\n    print(f\"Training fold {fold_num}/{n_splits}...\")\n    X_tr, X_val = X[train_idx], X[val_idx]\n    y_tr, y_val = y[train_idx], y[val_idx]\n\n    clf = lgb.LGBMClassifier(n_estimators=1000, **lgb_params)\n    clf.fit(\n        X_tr,\n        y_tr,\n        eval_set=[(X_val, y_val)],\n        eval_metric=\"multi_logloss\",\n        early_stopping_rounds=50,\n        verbose=False,\n    )\n    # Predict\n    val_pred = clf.predict_proba(X_val)\n    oof_preds[val_idx] = val_pred\n    loss = log_loss(y_val, val_pred, labels=list(range(len(breed_cols))))\n    print(f\"Fold {fold_num} log_loss: {loss:.6f}\")\n    fold_scores.append(loss)\n    bi = getattr(clf, \"best_iteration_\", None)\n    if bi is None:\n        bi = clf.n_estimators\n    best_iters.append(bi)\n\nmean_loss = np.mean(fold_scores)\nstd_loss = np.std(fold_scores)\nprint(f\"\\nCV log_loss mean: {mean_loss:.6f} std: {std_loss:.6f}\")\n\n# Train final model on all data using average best iteration (fallback to 300)\nmean_best_iter = int(np.mean(best_iters)) if len(best_iters) > 0 else 300\nif mean_best_iter < 10:\n    mean_best_iter = 300\nprint(\n    f\"Training final model with n_estimators={mean_best_iter} on full training set...\"\n)\nfinal_clf = lgb.LGBMClassifier(n_estimators=mean_best_iter, **lgb_params)\nfinal_clf.fit(X, y, verbose=False)\n\n# Predict on test set\ntest_pred = final_clf.predict_proba(X_test)\n\n# Ensure columns in submission match sample_submission order\nsubmission_df = pd.DataFrame(test_pred, columns=breed_cols)\nsubmission_df.insert(0, \"id\", test_ids)\n\n# If any sample_submission breed column missing (unlikely), add zeros\nfor col in sample_sub.columns[1:]:\n    if col not in submission_df.columns:\n        submission_df[col] = 0.0\n# Reorder columns to match sample_submission exactly\nsubmission_df = submission_df[sample_sub.columns]\n\n# Save submission\nsubmission_df.to_csv(SUBMISSION_PATH, index=False)\nprint(f\"Saved submission to {SUBMISSION_PATH}\")\nprint(f\"Final CV log_loss (mean over {n_splits} folds): {mean_loss:.6f}\")\n",
                 "exec_time": 3.510451078414917,
@@ -692,7 +815,7 @@
                 "index": 8,
                 "step": 8,
                 "id": "b3384c1885c04f5bbcc3efe3f6321e13",
-                "parent_id": null,
+                "parent_id": "d24fa712625243ae8b12d5ab65377a32",
                 "plan": "I will fix the previous run by making the PCA call compatible with typical sklearn versions (use svd_solver='randomized' and pass random_state) to avoid a TypeError that can abort the run, add robust image-loading fallbacks, and ensure the submission CSV is always written to ./submission/submission.csv. The script performs 5-fold stratified cross-validation, fits PCA per-fold, trains a LightGBM multiclass model (with a sklearn fallback to LogisticRegression if LightGBM is unavailable), prints per-fold and mean multi-class log loss, and saves test-set probabilities in the required submission path matching the sample_submission column order.",
                 "code": "#!/usr/bin/env python3\nimport os\nimport sys\nimport numpy as np\nimport pandas as pd\nfrom PIL import Image\nfrom sklearn.model_selection import StratifiedKFold\nfrom sklearn.decomposition import PCA\nfrom sklearn.metrics import log_loss\nfrom sklearn.linear_model import LogisticRegression\nimport traceback\nimport warnings\n\n# Try import lightgbm, otherwise we'll fallback to LogisticRegression\ntry:\n    import lightgbm as lgb\n\n    HAS_LGB = True\nexcept Exception:\n    HAS_LGB = False\n\nwarnings.filterwarnings(\"ignore\")\n\n# Paths\nINPUT_DIR = \"./input\"\nTRAIN_DIR = os.path.join(INPUT_DIR, \"train\")\nTEST_DIR = os.path.join(INPUT_DIR, \"test\")\nLABELS_PATH = os.path.join(INPUT_DIR, \"labels.csv\")\nSAMPLE_SUB_PATH = os.path.join(INPUT_DIR, \"sample_submission.csv\")\nSUBMISSION_DIR = \"./submission\"\nSUBMISSION_PATH = os.path.join(SUBMISSION_DIR, \"submission.csv\")\n\nos.makedirs(SUBMISSION_DIR, exist_ok=True)\n\n# Parameters\nIMAGE_SIZE = 64  # resize images to IMAGE_SIZE x IMAGE_SIZE\nPCA_COMPONENTS = 256\nN_FOLDS = 5\nRANDOM_STATE = 42\nLGB_NUM_ROUNDS = 200\nLGB_EARLY_STOP = 20\n\n# Read sample submission to get columns / breed order\nsample_sub = pd.read_csv(SAMPLE_SUB_PATH)\nbreed_cols = list(sample_sub.columns)[1:]  # excluding id\n\n# Read labels\nlabels_df = pd.read_csv(LABELS_PATH)\nid_list = labels_df[\"id\"].values\nbreeds = labels_df[\"breed\"].values\n\n# Map breeds to indices according to sample_submission ordering\nbreed_to_idx = {b: i for i, b in enumerate(breed_cols)}\n# Some safety: ensure all breeds in labels exist in mapping\nmissing = set(np.unique(breeds)) - set(breed_cols)\nif missing:\n    raise ValueError(\n        f\"Found breeds in labels not in sample_submission columns: {missing}\"\n    )\n\ny = np.array([breed_to_idx[b] for b in breeds], dtype=np.int32)\n\n\n# Helper to load and preprocess images into numpy arrays (float32)\ndef load_images_as_array(ids, folder, img_size=IMAGE_SIZE):\n    n = len(ids)\n    X = np.zeros((n, img_size * img_size * 3), dtype=np.float32)\n    for i, img_id in enumerate(ids):\n        img_path = os.path.join(folder, img_id + \".jpg\")\n        try:\n            with Image.open(img_path) as img:\n                img = img.convert(\"RGB\")\n                img = img.resize((img_size, img_size), Image.LANCZOS)\n                arr = np.asarray(img, dtype=np.float32) / 255.0\n                X[i, :] = arr.reshape(-1)\n        except Exception as e:\n            # Try other extensions or fallback to zeros\n            alt_ok = False\n            for ext in [\".jpeg\", \".png\", \".bmp\"]:\n                alt_path = os.path.join(folder, img_id + ext)\n                if os.path.exists(alt_path):\n                    try:\n                        with Image.open(alt_path) as img:\n                            img = img.convert(\"RGB\")\n                            img = img.resize((img_size, img_size), Image.LANCZOS)\n                            arr = np.asarray(img, dtype=np.float32) / 255.0\n                            X[i, :] = arr.reshape(-1)\n                            alt_ok = True\n                            break\n                    except Exception:\n                        continue\n            if not alt_ok:\n                print(f\"Warning: failed to load {img_path}: {e}\", file=sys.stderr)\n                X[i, :] = 0.0\n        if (i + 1) % 1000 == 0 or (i + 1) == n:\n            print(f\"Loaded {i + 1}/{n} images from {folder}\", file=sys.stderr)\n    return X\n\n\n# Load train images\nprint(\"Loading train images...\", file=sys.stderr)\nX_all = load_images_as_array(id_list, TRAIN_DIR, IMAGE_SIZE)\nprint(\"Train images loaded.\", file=sys.stderr)\n\n# Load test images ids and data\ntest_sample = pd.read_csv(SAMPLE_SUB_PATH)\ntest_ids = test_sample[\"id\"].values\nprint(\"Loading test images...\", file=sys.stderr)\nX_test_full = load_images_as_array(test_ids, TEST_DIR, IMAGE_SIZE)\nprint(\"Test images loaded.\", file=sys.stderr)\n\nn_classes = len(breed_cols)\n\n# Prepare CV\nskf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE)\noof_preds = np.zeros((X_all.shape[0], n_classes), dtype=np.float32)\ntest_preds = np.zeros((X_test_full.shape[0], n_classes), dtype=np.float32)\nfold = 0\ncv_losses = []\n\nfor train_idx, val_idx in skf.split(X_all, y):\n    fold += 1\n    print(f\"\\nStarting fold {fold}/{N_FOLDS}\", file=sys.stderr)\n    X_tr, X_val = X_all[train_idx], X_all[val_idx]\n    y_tr, y_val = y[train_idx], y[val_idx]\n\n    # Fit PCA on training fold using randomized SVD to ensure compatibility\n    n_comp = min(PCA_COMPONENTS, X_tr.shape[0], X_tr.shape[1])\n    pca = PCA(n_components=n_comp, svd_solver=\"randomized\", random_state=RANDOM_STATE)\n    print(\"Fitting PCA...\", file=sys.stderr)\n    X_tr_p = pca.fit_transform(X_tr)\n    X_val_p = pca.transform(X_val)\n    X_test_p = pca.transform(X_test_full)\n\n    # Train model: prefer LightGBM if available, otherwise fallback to multinomial logistic regression\n    if HAS_LGB:\n        try:\n            lgb_train = lgb.Dataset(X_tr_p, label=y_tr)\n            lgb_valid = lgb.Dataset(X_val_p, label=y_val, reference=lgb_train)\n            params = {\n                \"objective\": \"multiclass\",\n                \"num_class\": n_classes,\n                \"metric\": \"multi_logloss\",\n                \"learning_rate\": 0.1,\n                \"num_leaves\": 31,\n                \"verbosity\": -1,\n                \"seed\": RANDOM_STATE,\n                \"deterministic\": True,\n            }\n            print(\"Training LightGBM...\", file=sys.stderr)\n            bst = lgb.train(\n                params,\n                lgb_train,\n                num_boost_round=LGB_NUM_ROUNDS,\n                valid_sets=[lgb_train, lgb_valid],\n                early_stopping_rounds=LGB_EARLY_STOP,\n                verbose_eval=False,\n            )\n            val_pred = bst.predict(X_val_p, num_iteration=bst.best_iteration)\n            test_pred = bst.predict(X_test_p, num_iteration=bst.best_iteration)\n        except Exception:\n            print(\n                \"LightGBM training failed; falling back to LogisticRegression. Error:\",\n                file=sys.stderr,\n            )\n            traceback.print_exc()\n            HAS_LGB = False  # fallback next folds as well\n\n    if not HAS_LGB:\n        # Use multinomial logistic regression with saga solver\n        print(\"Training LogisticRegression (multinomial)...\", file=sys.stderr)\n        clf = LogisticRegression(\n            multi_class=\"multinomial\",\n            solver=\"saga\",\n            max_iter=1000,\n            C=1.0,\n            random_state=RANDOM_STATE,\n        )\n        clf.fit(X_tr_p, y_tr)\n        val_pred = clf.predict_proba(X_val_p)\n        test_pred = clf.predict_proba(X_test_p)\n\n    # Ensure probabilities shape is (n_samples, n_classes)\n    if val_pred.shape[1] != n_classes:\n        # If some classes missing in fold for logistic regression, we need to expand\n        # Create a full matrix with small eps and fill available columns\n        eps = 1e-12\n        vp = np.ones((val_pred.shape[0], n_classes), dtype=np.float32) * eps\n        tp = np.ones((test_pred.shape[0], n_classes), dtype=np.float32) * eps\n        # Try to get classes_ attribute from model or bst (lightgbm doesn't provide classes_)\n        if not HAS_LGB and hasattr(clf, \"classes_\"):\n            for i, cls in enumerate(clf.classes_):\n                vp[:, cls] = val_pred[:, i]\n                tp[:, cls] = test_pred[:, i]\n        else:\n            # As a fallback, distribute uniformly\n            vp = np.full(\n                (val_pred.shape[0], n_classes), 1.0 / n_classes, dtype=np.float32\n            )\n            tp = np.full(\n                (test_pred.shape[0], n_classes), 1.0 / n_classes, dtype=np.float32\n            )\n        val_pred = vp\n        test_pred = tp\n\n    oof_preds[val_idx] = val_pred\n    test_preds += test_pred / N_FOLDS\n\n    loss = log_loss(y_val, val_pred, labels=list(range(n_classes)))\n    cv_losses.append(loss)\n    print(f\"Fold {fold} log_loss: {loss:.6f}\", file=sys.stderr)\n\n# Overall CV log loss\ncv_logloss = float(np.mean(cv_losses)) if cv_losses else float(\"nan\")\nprint(\n    f\"\\nCV mean multi-class log-loss over {len(cv_losses)} folds: {cv_logloss:.6f}\",\n    file=sys.stderr,\n)\n\n# Save submission using breed_cols order\nsubmission = pd.DataFrame(test_preds, columns=breed_cols)\nsubmission.insert(0, \"id\", test_ids)\n# Ensure column order matches sample_submission\nsubmission = submission[sample_sub.columns]\nsubmission.to_csv(SUBMISSION_PATH, index=False)\nprint(f\"Submission saved to {SUBMISSION_PATH}\", file=sys.stderr)\n\n# Also print the metric to stdout as required\nprint(f\"Mean CV log-loss: {cv_logloss:.6f}\")\n",
                 "exec_time": 6148.996357917786,
@@ -711,7 +834,7 @@
                 "index": 9,
                 "step": 9,
                 "id": "336282035ee841b1a33afe206c85d2d7",
-                "parent_id": null,
+                "parent_id": "a5d1ade1bbac483a89f08052ddcad2d6",
                 "plan": "The bug was that label indices given to LightGBM did not match the column order expected in the sample submission: LabelEncoder reorders classes internally, so predicted probability columns were misaligned to breed names. Fix by constructing an explicit mapping from breed name to index using the sample submission column order, so training labels and submission columns share the same class ordering. I also keep the rest of the pipeline (handcrafted color histograms + PCA + 5-fold LightGBM), print the CV multi-class log loss, and save the submission to ./submission/submission.csv.",
                 "code": "#!/usr/bin/env python3\nimport os\nimport time\nfrom pathlib import Path\nimport numpy as np\nimport pandas as pd\nfrom PIL import Image\nfrom tqdm import tqdm\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.decomposition import PCA\nfrom sklearn.model_selection import StratifiedKFold\nfrom sklearn.metrics import log_loss\nimport lightgbm as lgb\nimport random\n\n# Config\nSEED = 42\nrandom.seed(SEED)\nnp.random.seed(SEED)\n\nINPUT_DIR = Path(\"input\")\nTRAIN_DIR = INPUT_DIR / \"train\"\nTEST_DIR = INPUT_DIR / \"test\"\nLABELS_FILE = INPUT_DIR / \"labels.csv\"\nSAMPLE_SUB_FILE = INPUT_DIR / \"sample_submission.csv\"\nSUBMISSION_DIR = Path(\"submission\")\nSUBMISSION_DIR.mkdir(parents=True, exist_ok=True)\nSUBMISSION_FILE = SUBMISSION_DIR / \"submission.csv\"\n\n# Feature settings\nRESIZE = (128, 128)  # resize images for consistent histogram computation\nBINS_PER_CHANNEL = 32  # histogram bins per channel\nPCA_COMPONENTS = 50\nN_FOLDS = 5\n\n\ndef read_image(path):\n    try:\n        img = Image.open(path).convert(\"RGB\")\n        return img\n    except Exception:\n        # return a black image if failed to open\n        return Image.new(\"RGB\", RESIZE, (0, 0, 0))\n\n\ndef extract_handcrafted_features(\n    ids, folder, resize=RESIZE, bins_per_channel=BINS_PER_CHANNEL\n):\n    features = []\n    ids_out = []\n    # bin edges for 0..255\n    bin_edges = np.linspace(0, 256, bins_per_channel + 1)\n    for img_id in tqdm(\n        ids, desc=f\"Extract features from {Path(folder).name}\", unit=\"img\"\n    ):\n        img_path = Path(folder) / (img_id + \".jpg\")\n        img = read_image(img_path)\n        img = img.resize(resize)\n        arr = np.array(img)  # H x W x 3\n        # compute per-channel histograms (normalized)\n        ch_feats = []\n        for ch in range(3):\n            hist, _ = np.histogram(arr[:, :, ch].ravel(), bins=bin_edges, density=True)\n            ch_feats.append(hist.astype(np.float32))\n        # flatten hist\n        hist_feats = np.concatenate(ch_feats)\n        # simple stats\n        means = arr.mean(axis=(0, 1)).astype(np.float32)\n        stds = arr.std(axis=(0, 1)).astype(np.float32)\n        # aspect ratio and size\n        h, w = arr.shape[0], arr.shape[1]\n        aspect = np.array([h / (w + 1e-9), (h * w)], dtype=np.float32)\n        feat = np.concatenate([hist_feats, means, stds, aspect])\n        features.append(feat)\n        ids_out.append(img_id)\n    features = np.vstack(features).astype(np.float32)\n    return ids_out, features\n\n\ndef main():\n    t0 = time.time()\n    # Read metadata\n    labels_df = pd.read_csv(LABELS_FILE)\n    sample_sub = pd.read_csv(SAMPLE_SUB_FILE)\n\n    # Breed columns in sample submission define desired ordering\n    breed_cols = [c for c in sample_sub.columns if c != \"id\"]\n\n    # Build explicit mapping from breed name to index according to sample submission order\n    class_to_idx = {breed: i for i, breed in enumerate(breed_cols)}\n\n    # Prepare training ids and labels (use mapping defined above)\n    train_ids = labels_df[\"id\"].astype(str).values\n    train_breeds = labels_df[\"breed\"].astype(str).values\n    # Map breeds to indices using sample submission order to ensure alignment\n    y = np.array([class_to_idx[b] for b in train_breeds], dtype=np.int32)\n\n    test_ids = sample_sub[\"id\"].astype(str).values\n\n    # Extract features\n    train_ids_list, train_feats = extract_handcrafted_features(train_ids, TRAIN_DIR)\n    test_ids_list, test_feats = extract_handcrafted_features(test_ids, TEST_DIR)\n\n    # Ensure order matches labels/sample submission\n    if list(train_ids) != train_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(train_ids_list)}\n        order = [idx_map[id_] for id_ in train_ids]\n        train_feats = train_feats[order]\n    if list(test_ids) != test_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(test_ids_list)}\n        order = [idx_map[id_] for id_ in test_ids]\n        test_feats = test_feats[order]\n\n    # Scale + PCA\n    scaler = StandardScaler()\n    train_scaled = scaler.fit_transform(train_feats)\n    test_scaled = scaler.transform(test_feats)\n\n    n_comp = min(PCA_COMPONENTS, train_scaled.shape[1])\n    pca = PCA(n_components=n_comp, random_state=SEED)\n    train_pca = pca.fit_transform(train_scaled)\n    test_pca = pca.transform(test_scaled)\n\n    # CV and LightGBM\n    num_classes = len(breed_cols)\n    skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=SEED)\n    oof_preds = np.zeros((train_pca.shape[0], num_classes), dtype=np.float64)\n    test_preds = np.zeros((test_pca.shape[0], num_classes), dtype=np.float64)\n\n    folds = list(skf.split(train_pca, y))\n    for fold, (tr_idx, val_idx) in enumerate(folds):\n        print(f\"\\nFold {fold+1}/{N_FOLDS}\")\n        X_tr, X_val = train_pca[tr_idx], train_pca[val_idx]\n        y_tr, y_val = y[tr_idx], y[val_idx]\n\n        lgb_train = lgb.Dataset(X_tr, label=y_tr)\n        lgb_val = lgb.Dataset(X_val, label=y_val, reference=lgb_train)\n\n        params = {\n            \"objective\": \"multiclass\",\n            \"num_class\": num_classes,\n            \"metric\": \"multi_logloss\",\n            \"verbosity\": -1,\n            \"learning_rate\": 0.1,\n            \"num_leaves\": 31,\n            \"seed\": int(SEED + fold),\n            \"feature_fraction\": 0.9,\n            \"bagging_freq\": 1,\n            \"bagging_fraction\": 0.9,\n        }\n        bst = lgb.train(\n            params,\n            lgb_train,\n            num_boost_round=500,\n            valid_sets=[lgb_train, lgb_val],\n            valid_names=[\"train\", \"valid\"],\n            early_stopping_rounds=50,\n            verbose_eval=100,\n        )\n        val_pred = bst.predict(X_val, num_iteration=bst.best_iteration)\n        oof_preds[val_idx] = val_pred\n        test_fold_pred = bst.predict(test_pca, num_iteration=bst.best_iteration)\n        test_preds += test_fold_pred / N_FOLDS\n\n        fold_loss = log_loss(y_val, val_pred)\n        print(f\"Fold {fold+1} log_loss: {fold_loss:.6f}\")\n\n    # CV metric\n    cv_loss = log_loss(y, oof_preds)\n    print(f\"\\nCV Multi-class Log Loss (OOF): {cv_loss:.6f}\")\n\n    # Build submission DataFrame using sample submission ordering (breed_cols)\n    sub_df = pd.DataFrame(test_preds, columns=breed_cols)\n    sub_df.insert(0, \"id\", test_ids)\n    # Ensure exact column order as sample submission\n    sub_df = sub_df[sample_sub.columns]\n    # Save submission\n    sub_df.to_csv(SUBMISSION_FILE, index=False)\n    print(f\"Submission saved to {SUBMISSION_FILE}\")\n\n    t_end = time.time()\n    print(f\"Total time elapsed: {(t_end - t0)/60:.2f} minutes\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
                 "exec_time": 0.41422343254089355,
@@ -730,7 +853,7 @@
                 "index": 10,
                 "step": 10,
                 "id": "e8ea0260d83348d882afafb9ac9559d7",
-                "parent_id": null,
+                "parent_id": "336282035ee841b1a33afe206c85d2d7",
                 "plan": "The bug seemed to be that the original script could fail silently and not produce a submission (and it wasn't robust to missing images or ordering mismatches). I'll (1) make feature extraction robust to missing files, (2) enforce consistent ordering with the sample submission, (3) produce a simple stratified hold-out evaluation and a 5-fold CV evaluation (printing both log-loss values), and (4) ensure the final test predictions are normalized and saved to submission/submission.csv. The code below implements these fixes and prints the requested metrics.",
                 "code": "#!/usr/bin/env python3\nimport os\nimport time\nfrom pathlib import Path\nimport numpy as np\nimport pandas as pd\nfrom PIL import Image\nfrom tqdm import tqdm\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.decomposition import PCA\nfrom sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit\nfrom sklearn.metrics import log_loss\nimport lightgbm as lgb\nimport random\nimport warnings\n\nwarnings.filterwarnings(\"ignore\")\n\n# Config\nSEED = 42\nrandom.seed(SEED)\nnp.random.seed(SEED)\n\nINPUT_DIR = Path(\"input\")\nTRAIN_DIR = INPUT_DIR / \"train\"\nTEST_DIR = INPUT_DIR / \"test\"\nLABELS_FILE = INPUT_DIR / \"labels.csv\"\nSAMPLE_SUB_FILE = INPUT_DIR / \"sample_submission.csv\"\nSUBMISSION_DIR = Path(\"submission\")\nSUBMISSION_DIR.mkdir(parents=True, exist_ok=True)\nSUBMISSION_FILE = SUBMISSION_DIR / \"submission.csv\"\n\n# Feature settings\nRESIZE = (128, 128)  # resize images for consistent histogram computation\nBINS_PER_CHANNEL = 32  # histogram bins per channel\nPCA_COMPONENTS = 50\nN_FOLDS = 5\n\n\ndef read_image(path):\n    try:\n        img = Image.open(path).convert(\"RGB\")\n        return img\n    except Exception:\n        # return a black image if failed to open\n        return Image.new(\"RGB\", RESIZE, (0, 0, 0))\n\n\ndef extract_handcrafted_features(\n    ids, folder, resize=RESIZE, bins_per_channel=BINS_PER_CHANNEL\n):\n    \"\"\"\n    Extract lightweight handcrafted features: per-channel histograms (normalized), per-channel mean/std,\n    and simple aspect/size features. Robust to missing images (replaces with black image).\n    Returns (ids_out, features_numpy) where ids_out corresponds to returned rows.\n    \"\"\"\n    features = []\n    ids_out = []\n    # bin edges for 0..255\n    bin_edges = np.linspace(0, 256, bins_per_channel + 1)\n    for img_id in tqdm(\n        ids, desc=f\"Extract features from {Path(folder).name}\", unit=\"img\"\n    ):\n        img_path = Path(folder) / (img_id + \".jpg\")\n        img = read_image(img_path)\n        if img is None:\n            img = Image.new(\"RGB\", resize, (0, 0, 0))\n        try:\n            img = img.resize(resize)\n        except Exception:\n            img = Image.new(\"RGB\", resize, (0, 0, 0))\n        arr = np.array(img)  # H x W x 3\n        # compute per-channel histograms (normalized)\n        ch_feats = []\n        for ch in range(3):\n            hist, _ = np.histogram(arr[:, :, ch].ravel(), bins=bin_edges, density=True)\n            ch_feats.append(hist.astype(np.float32))\n        # flatten hist\n        hist_feats = np.concatenate(ch_feats)\n        # simple stats\n        means = arr.mean(axis=(0, 1)).astype(np.float32)\n        stds = arr.std(axis=(0, 1)).astype(np.float32)\n        # aspect ratio and size (use original resized dims)\n        h, w = arr.shape[0], arr.shape[1]\n        aspect = np.array([h / (w + 1e-9), (h * w)], dtype=np.float32)\n        feat = np.concatenate([hist_feats, means, stds, aspect])\n        features.append(feat)\n        ids_out.append(img_id)\n    features = np.vstack(features).astype(np.float32)\n    return ids_out, features\n\n\ndef safe_normalize_rows(preds):\n    # ensure probabilities non-negative and rows sum to 1\n    preds = np.maximum(preds, 1e-15)\n    row_sums = preds.sum(axis=1, keepdims=True)\n    row_sums[row_sums == 0] = 1.0\n    return preds / row_sums\n\n\ndef main():\n    t0 = time.time()\n    print(\"Reading metadata...\")\n    labels_df = pd.read_csv(LABELS_FILE)\n    sample_sub = pd.read_csv(SAMPLE_SUB_FILE)\n\n    # Breed columns in sample submission define desired ordering\n    breed_cols = [c for c in sample_sub.columns if c != \"id\"]\n\n    # Build explicit mapping from breed name to index according to sample submission order\n    class_to_idx = {breed: i for i, breed in enumerate(breed_cols)}\n    num_classes = len(breed_cols)\n    print(f\"Number of classes (breeds): {num_classes}\")\n\n    # Prepare training ids and labels (use mapping defined above)\n    train_ids = labels_df[\"id\"].astype(str).values\n    train_breeds = labels_df[\"breed\"].astype(str).values\n    # Map breeds to indices using sample submission order to ensure alignment\n    try:\n        y = np.array([class_to_idx[b] for b in train_breeds], dtype=np.int32)\n    except KeyError as e:\n        missing = e.args[0]\n        raise RuntimeError(\n            f\"Breed label in labels.csv not found in sample submission columns: {missing}\"\n        )\n\n    test_ids = sample_sub[\"id\"].astype(str).values\n\n    # Extract features (this can take some time)\n    print(\"Extracting training features...\")\n    train_ids_list, train_feats = extract_handcrafted_features(train_ids, TRAIN_DIR)\n    print(\"Extracting test features...\")\n    test_ids_list, test_feats = extract_handcrafted_features(test_ids, TEST_DIR)\n\n    # Ensure order matches original arrays; if not, re-order to match original id arrays\n    if list(train_ids) != train_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(train_ids_list)}\n        order = [idx_map[id_] for id_ in train_ids]\n        train_feats = train_feats[order]\n    if list(test_ids) != test_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(test_ids_list)}\n        order = [idx_map[id_] for id_ in test_ids]\n        test_feats = test_feats[order]\n\n    print(\n        f\"Train features shape: {train_feats.shape}, Test features shape: {test_feats.shape}\"\n    )\n\n    # Scale + PCA\n    scaler = StandardScaler()\n    train_scaled = scaler.fit_transform(train_feats)\n    test_scaled = scaler.transform(test_feats)\n\n    n_comp = min(PCA_COMPONENTS, train_scaled.shape[1])\n    pca = PCA(n_components=n_comp, random_state=SEED)\n    train_pca = pca.fit_transform(train_scaled)\n    test_pca = pca.transform(test_scaled)\n    print(f\"PCA reduced dimension to: {n_comp}\")\n\n    # Hold-out split for quick validation (single fold)\n    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.10, random_state=SEED)\n    hold_train_idx, hold_val_idx = next(sss.split(train_pca, y))\n    X_hold_tr, X_hold_val = train_pca[hold_train_idx], train_pca[hold_val_idx]\n    y_hold_tr, y_hold_val = y[hold_train_idx], y[hold_val_idx]\n\n    # Train a single LightGBM on hold-out training data to get a simple hold-out metric\n    print(\"Training a single LightGBM for hold-out validation (quick check)...\")\n    lgb_train = lgb.Dataset(X_hold_tr, label=y_hold_tr)\n    params_hold = {\n        \"objective\": \"multiclass\",\n        \"num_class\": num_classes,\n        \"metric\": \"multi_logloss\",\n        \"verbosity\": -1,\n        \"learning_rate\": 0.1,\n        \"num_leaves\": 31,\n        \"seed\": int(SEED),\n        \"feature_fraction\": 0.9,\n        \"bagging_freq\": 1,\n        \"bagging_fraction\": 0.9,\n        \"num_threads\": 4,\n    }\n    # small fixed number of rounds for quick hold-out\n    bst_hold = lgb.train(\n        params_hold,\n        lgb_train,\n        num_boost_round=200,\n        verbose_eval=False,\n    )\n    hold_pred = bst_hold.predict(X_hold_val)\n    hold_pred = safe_normalize_rows(hold_pred)\n    hold_loss = log_loss(y_hold_val, hold_pred)\n    print(f\"Hold-out Multi-class Log Loss: {hold_loss:.6f}\")\n\n    # 5-fold CV and full test prediction\n    print(\"\\nStarting 5-fold CV...\")\n    skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=SEED)\n    oof_preds = np.zeros((train_pca.shape[0], num_classes), dtype=np.float64)\n    test_preds = np.zeros((test_pca.shape[0], num_classes), dtype=np.float64)\n\n    folds = list(skf.split(train_pca, y))\n    for fold, (tr_idx, val_idx) in enumerate(folds):\n        print(f\"\\nFold {fold + 1}/{N_FOLDS}\")\n        X_tr, X_val = train_pca[tr_idx], train_pca[val_idx]\n        y_tr, y_val = y[tr_idx], y[val_idx]\n\n        lgb_train = lgb.Dataset(X_tr, label=y_tr)\n        lgb_val = lgb.Dataset(X_val, label=y_val, reference=lgb_train)\n\n        params = {\n            \"objective\": \"multiclass\",\n            \"num_class\": num_classes,\n            \"metric\": \"multi_logloss\",\n            \"verbosity\": -1,\n            \"learning_rate\": 0.05,\n            \"num_leaves\": 31,\n            \"seed\": int(SEED + fold),\n            \"feature_fraction\": 0.9,\n            \"bagging_freq\": 1,\n            \"bagging_fraction\": 0.9,\n            \"num_threads\": 4,\n        }\n        bst = lgb.train(\n            params,\n            lgb_train,\n            num_boost_round=1000,\n            valid_sets=[lgb_train, lgb_val],\n            valid_names=[\"train\", \"valid\"],\n            early_stopping_rounds=50,\n            verbose_eval=100,\n        )\n        val_pred = bst.predict(X_val, num_iteration=bst.best_iteration)\n        val_pred = safe_normalize_rows(val_pred)\n        oof_preds[val_idx] = val_pred\n        test_fold_pred = bst.predict(test_pca, num_iteration=bst.best_iteration)\n        test_preds += test_fold_pred / N_FOLDS\n\n        fold_loss = log_loss(y_val, val_pred)\n        print(f\"Fold {fold + 1} log_loss: {fold_loss:.6f}\")\n\n    # CV metric\n    oof_preds = safe_normalize_rows(oof_preds)\n    cv_loss = log_loss(y, oof_preds)\n    print(f\"\\nCV Multi-class Log Loss (OOF): {cv_loss:.6f}\")\n\n    # Ensure test predictions are proper probabilities\n    test_preds = safe_normalize_rows(test_preds)\n\n    # Build submission DataFrame using sample submission ordering (breed_cols)\n    sub_df = pd.DataFrame(test_preds, columns=breed_cols)\n    sub_df.insert(0, \"id\", test_ids)\n    # Ensure exact column order as sample submission\n    sub_df = sub_df[sample_sub.columns]\n\n    # Save submission\n    sub_df.to_csv(SUBMISSION_FILE, index=False)\n    print(f\"\\nSubmission saved to {SUBMISSION_FILE}\")\n\n    t_end = time.time()\n    print(f\"Total time elapsed: {(t_end - t0)/60:.2f} minutes\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
                 "exec_time": 0.5854175090789795,
@@ -749,7 +872,7 @@
                 "index": 11,
                 "step": 11,
                 "id": "27cdcdd6d9c64522b3f3983a6f561044",
-                "parent_id": null,
+                "parent_id": "e8ea0260d83348d882afafb9ac9559d7",
                 "plan": "I will make the pipeline more robust and ensure a submission is always written: replace the LightGBM step (which can fail if the package is not present) with a standard sklearn LogisticRegression (multinomial) classifier, reduce image size and histogram bins for speed, handle missing/corrupt images gracefully, and always save a properly ordered submission.csv matching the sample submission columns. The script will compute a 10% hold-out log-loss (printed) and perform 5-fold CV to produce averaged test probabilities, print the CV log-loss, and save the submission file to ./submission/submission.csv.",
                 "code": "#!/usr/bin/env python3\nimport os\nimport time\nfrom pathlib import Path\nimport numpy as np\nimport pandas as pd\nfrom PIL import Image\nfrom tqdm import tqdm\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.decomposition import PCA\nfrom sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit\nfrom sklearn.metrics import log_loss\nfrom sklearn.linear_model import LogisticRegression\nimport random\nimport warnings\n\nwarnings.filterwarnings(\"ignore\")\n\n# Config\nSEED = 42\nrandom.seed(SEED)\nnp.random.seed(SEED)\n\nINPUT_DIR = Path(\"input\")\nTRAIN_DIR = INPUT_DIR / \"train\"\nTEST_DIR = INPUT_DIR / \"test\"\nLABELS_FILE = INPUT_DIR / \"labels.csv\"\nSAMPLE_SUB_FILE = INPUT_DIR / \"sample_submission.csv\"\nSUBMISSION_DIR = Path(\"submission\")\nSUBMISSION_DIR.mkdir(parents=True, exist_ok=True)\nSUBMISSION_FILE = SUBMISSION_DIR / \"submission.csv\"\n\n# Feature settings (kept small for speed and robustness)\nRESIZE = (64, 64)  # smaller resize to speed up feature extraction\nBINS_PER_CHANNEL = 16  # fewer histogram bins\nPCA_COMPONENTS = 50\nN_FOLDS = 5\n\n\ndef read_image_safe(path, resize=RESIZE):\n    try:\n        img = Image.open(path).convert(\"RGB\")\n        if resize is not None:\n            img = img.resize(resize)\n        return np.array(img)\n    except Exception:\n        # return a black image if failed to open\n        return np.zeros((resize[1], resize[0], 3), dtype=np.uint8)\n\n\ndef extract_handcrafted_features(\n    ids, folder, resize=RESIZE, bins_per_channel=BINS_PER_CHANNEL\n):\n    \"\"\"\n    Extract per-channel histograms (normalized), per-channel mean/std,\n    and simple area/aspect features. Returns (ids_out, features_numpy).\n    \"\"\"\n    features = []\n    ids_out = []\n    # bin edges for 0..255 inclusive\n    bin_edges = np.linspace(0, 256, bins_per_channel + 1)\n    for img_id in tqdm(\n        ids, desc=f\"Extract features from {Path(folder).name}\", unit=\"img\"\n    ):\n        img_path = Path(folder) / (img_id + \".jpg\")\n        arr = read_image_safe(img_path, resize=resize)  # H x W x 3\n        # compute per-channel histograms (normalized)\n        ch_feats = []\n        for ch in range(3):\n            hist, _ = np.histogram(arr[:, :, ch].ravel(), bins=bin_edges, density=True)\n            ch_feats.append(hist.astype(np.float32))\n        hist_feats = np.concatenate(ch_feats)\n        # simple stats\n        means = arr.mean(axis=(0, 1)).astype(np.float32)\n        stds = arr.std(axis=(0, 1)).astype(np.float32)\n        # aspect ratio and size\n        h, w = arr.shape[0], arr.shape[1]\n        aspect = np.array([h / (w + 1e-9), (h * w)], dtype=np.float32)\n        feat = np.concatenate([hist_feats, means, stds, aspect])\n        features.append(feat)\n        ids_out.append(img_id)\n    features = np.vstack(features).astype(np.float32)\n    return ids_out, features\n\n\ndef safe_normalize_rows(preds):\n    preds = np.maximum(preds, 1e-15)\n    row_sums = preds.sum(axis=1, keepdims=True)\n    row_sums[row_sums == 0] = 1.0\n    return preds / row_sums\n\n\ndef main():\n    t0 = time.time()\n    print(\"Reading metadata...\")\n    labels_df = pd.read_csv(LABELS_FILE)\n    sample_sub = pd.read_csv(SAMPLE_SUB_FILE)\n\n    # Breed columns in sample submission define desired ordering\n    breed_cols = [c for c in sample_sub.columns if c != \"id\"]\n\n    # Build explicit mapping from breed name to index according to sample submission order\n    class_to_idx = {breed: i for i, breed in enumerate(breed_cols)}\n    num_classes = len(breed_cols)\n    print(f\"Number of classes (breeds): {num_classes}\")\n\n    # Prepare training ids and labels (use mapping defined above)\n    train_ids = labels_df[\"id\"].astype(str).values\n    train_breeds = labels_df[\"breed\"].astype(str).values\n    # Map breeds to indices using sample submission order to ensure alignment\n    try:\n        y = np.array([class_to_idx[b] for b in train_breeds], dtype=np.int32)\n    except KeyError as e:\n        missing = e.args[0]\n        raise RuntimeError(\n            f\"Breed label in labels.csv not found in sample submission columns: {missing}\"\n        )\n\n    test_ids = sample_sub[\"id\"].astype(str).values\n\n    # Extract features\n    print(\"Extracting training features...\")\n    train_ids_list, train_feats = extract_handcrafted_features(train_ids, TRAIN_DIR)\n    print(\"Extracting test features...\")\n    test_ids_list, test_feats = extract_handcrafted_features(test_ids, TEST_DIR)\n\n    # Ensure order matches original arrays; if not, re-order to match original id arrays\n    if list(train_ids) != train_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(train_ids_list)}\n        order = [idx_map[id_] for id_ in train_ids]\n        train_feats = train_feats[order]\n    if list(test_ids) != test_ids_list:\n        idx_map = {id_: i for i, id_ in enumerate(test_ids_list)}\n        order = [idx_map[id_] for id_ in test_ids]\n        test_feats = test_feats[order]\n\n    print(\n        f\"Train features shape: {train_feats.shape}, Test features shape: {test_feats.shape}\"\n    )\n\n    # Scale + PCA\n    scaler = StandardScaler()\n    train_scaled = scaler.fit_transform(train_feats)\n    test_scaled = scaler.transform(test_feats)\n\n    n_comp = min(PCA_COMPONENTS, train_scaled.shape[1])\n    if n_comp < 1:\n        n_comp = train_scaled.shape[1]\n    pca = PCA(n_components=n_comp, random_state=SEED)\n    train_pca = pca.fit_transform(train_scaled)\n    test_pca = pca.transform(test_scaled)\n    print(f\"PCA reduced dimension to: {n_comp}\")\n\n    # Hold-out split for quick validation (single fold)\n    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.10, random_state=SEED)\n    hold_train_idx, hold_val_idx = next(sss.split(train_pca, y))\n    X_hold_tr, X_hold_val = train_pca[hold_train_idx], train_pca[hold_val_idx]\n    y_hold_tr, y_hold_val = y[hold_train_idx], y[hold_val_idx]\n\n    # Train a simple sklearn multinomial logistic regression on hold-out training data\n    print(\"Training LogisticRegression on hold-out split for quick check...\")\n    try:\n        clf_hold = LogisticRegression(\n            multi_class=\"multinomial\",\n            solver=\"lbfgs\",\n            max_iter=1000,\n            random_state=SEED,\n        )\n        clf_hold.fit(X_hold_tr, y_hold_tr)\n        hold_pred = clf_hold.predict_proba(X_hold_val)\n        hold_pred = safe_normalize_rows(hold_pred)\n        hold_loss = log_loss(y_hold_val, hold_pred)\n        print(f\"Hold-out Multi-class Log Loss: {hold_loss:.6f}\")\n    except Exception as e:\n        print(\n            \"Hold-out training failed, falling back to uniform probabilities. Error:\", e\n        )\n        hold_pred = (\n            np.ones((X_hold_val.shape[0], num_classes), dtype=np.float64) / num_classes\n        )\n        hold_loss = log_loss(y_hold_val, hold_pred)\n        print(f\"Hold-out Multi-class Log Loss (uniform): {hold_loss:.6f}\")\n\n    # 5-fold CV and full test prediction using LogisticRegression\n    print(\"\\nStarting 5-fold CV with LogisticRegression...\")\n    skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=SEED)\n    oof_preds = np.zeros((train_pca.shape[0], num_classes), dtype=np.float64)\n    test_preds = np.zeros((test_pca.shape[0], num_classes), dtype=np.float64)\n\n    for fold, (tr_idx, val_idx) in enumerate(skf.split(train_pca, y)):\n        print(f\"\\nFold {fold + 1}/{N_FOLDS}\")\n        X_tr, X_val = train_pca[tr_idx], train_pca[val_idx]\n        y_tr, y_val = y[tr_idx], y[val_idx]\n\n        try:\n            clf = LogisticRegression(\n                multi_class=\"multinomial\",\n                solver=\"lbfgs\",\n                max_iter=1000,\n                random_state=SEED + fold,\n            )\n            clf.fit(X_tr, y_tr)\n            val_pred = clf.predict_proba(X_val)\n            val_pred = safe_normalize_rows(val_pred)\n            oof_preds[val_idx] = val_pred\n            test_fold_pred = clf.predict_proba(test_pca)\n            test_preds += test_fold_pred / N_FOLDS\n            fold_loss = log_loss(y_val, val_pred)\n            print(f\"Fold {fold + 1} log_loss: {fold_loss:.6f}\")\n        except Exception as e:\n            print(\n                f\"Fold {fold + 1} training failed, using uniform probabilities. Error: {e}\"\n            )\n            val_pred = (\n                np.ones((X_val.shape[0], num_classes), dtype=np.float64) / num_classes\n            )\n            oof_preds[val_idx] = val_pred\n            test_preds += np.ones(\n                (test_pca.shape[0], num_classes), dtype=np.float64\n            ) / (N_FOLDS * num_classes)\n\n    # CV metric\n    oof_preds = safe_normalize_rows(oof_preds)\n    try:\n        cv_loss = log_loss(y, oof_preds)\n        print(f\"\\nCV Multi-class Log Loss (OOF): {cv_loss:.6f}\")\n    except Exception as e:\n        print(\"Could not compute CV log loss:\", e)\n        cv_loss = None\n\n    # Ensure test predictions are proper probabilities\n    test_preds = safe_normalize_rows(test_preds)\n\n    # Build submission DataFrame using sample submission ordering (breed_cols)\n    sub_df = pd.DataFrame(test_preds, columns=breed_cols)\n    sub_df.insert(0, \"id\", test_ids)\n    # Ensure exact column order as sample submission\n    sub_df = sub_df[sample_sub.columns]\n\n    # Save submission\n    sub_df.to_csv(SUBMISSION_FILE, index=False)\n    print(f\"\\nSubmission saved to {SUBMISSION_FILE}\")\n\n    t_end = time.time()\n    print(f\"Total time elapsed: {(t_end - t0)/60:.2f} minutes\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
                 "exec_time": 0.5448086261749268,
@@ -765,11 +888,105 @@
                 }
         }
 ];
+        const treeStructure = {
+        "total_nodes": 12,
+        "num_drafts": 5,
+        "drafts": [
+                {
+                        "draft_number": 1,
+                        "root_id": "d24fa712625243ae8b12d5ab65377a32",
+                        "root_step": 0,
+                        "total_nodes": 2,
+                        "max_depth": 1,
+                        "best_metric": null,
+                        "is_linear": true,
+                        "branching_points": [],
+                        "tree_path": [
+                                0,
+                                8
+                        ],
+                        "structure_type": "Linear chain"
+                },
+                {
+                        "draft_number": 2,
+                        "root_id": "d760f388852942b79c9ba1261b6ad960",
+                        "root_step": 1,
+                        "total_nodes": 2,
+                        "max_depth": 1,
+                        "best_metric": null,
+                        "is_linear": true,
+                        "branching_points": [],
+                        "tree_path": [
+                                1,
+                                7
+                        ],
+                        "structure_type": "Linear chain"
+                },
+                {
+                        "draft_number": 3,
+                        "root_id": "c743b8a7e0a24c4ca842cf6f1de6f296",
+                        "root_step": 2,
+                        "total_nodes": 1,
+                        "max_depth": 0,
+                        "best_metric": 0.8097729659739732,
+                        "is_linear": true,
+                        "branching_points": [],
+                        "tree_path": [
+                                2
+                        ],
+                        "structure_type": "Linear chain"
+                },
+                {
+                        "draft_number": 4,
+                        "root_id": "87bd8f037d784512ac606ee9ef10b8cf",
+                        "root_step": 3,
+                        "total_nodes": 2,
+                        "max_depth": 1,
+                        "best_metric": null,
+                        "is_linear": true,
+                        "branching_points": [],
+                        "tree_path": [
+                                3,
+                                5
+                        ],
+                        "structure_type": "Linear chain"
+                },
+                {
+                        "draft_number": 5,
+                        "root_id": "a01f8b0e1d3a4c9e9648e72a23f6b26a",
+                        "root_step": 4,
+                        "total_nodes": 5,
+                        "max_depth": 4,
+                        "best_metric": null,
+                        "is_linear": true,
+                        "branching_points": [],
+                        "tree_path": [
+                                4,
+                                6,
+                                9,
+                                10,
+                                11
+                        ],
+                        "structure_type": "Linear chain"
+                }
+        ],
+        "branching_points": [],
+        "tree_summary": {
+                "linear_drafts": 5,
+                "branching_drafts": 0,
+                "total_branching_points": 0,
+                "max_branches_at_point": 0
+        }
+};
         let currentStepIndex = null;
+        let stepMap = {};
+        let childrenMap = {};
+        let parentMap = {};
 
         function buildTreeHTML(steps) {
-            const stepMap = {};
-            const childrenMap = {};
+            stepMap = {};
+            childrenMap = {};
+            parentMap = {};
             const rootSteps = [];
 
             steps.forEach(step => {
@@ -781,28 +998,74 @@
                         childrenMap[step.parent_id] = [];
                     }
                     childrenMap[step.parent_id].push(step);
+                    parentMap[step.id] = step.parent_id;
                 }
             });
 
-            function buildNode(step, isRoot = false) {
+            function countDescendants(stepId) {
+                const children = childrenMap[stepId] || [];
+                let count = children.length;
+                children.forEach(child => {
+                    count += countDescendants(child.id);
+                });
+                return count;
+            }
+
+            function getMaxDepth(stepId, depth = 0) {
+                const children = childrenMap[stepId] || [];
+                if (children.length === 0) return depth;
+                return Math.max(...children.map(c => getMaxDepth(c.id, depth + 1)));
+            }
+
+            function getBestMetric(stepId) {
+                const step = stepMap[stepId];
+                let best = step.metric;
+                const children = childrenMap[stepId] || [];
+                children.forEach(child => {
+                    const childBest = getBestMetric(child.id);
+                    if (childBest !== null && (best === null || childBest > best)) {
+                        best = childBest;
+                    }
+                });
+                return best;
+            }
+
+            function buildNode(step, isRoot = false, isLastSibling = true, prefix = '', depth = 0) {
                 const buggyClass = step.is_buggy ? 'buggy' : '';
                 const rootClass = isRoot ? 'root' : '';
+                const children = childrenMap[step.id] || [];
+                const childCount = children.length;
+                const isBranching = childCount > 1;
+                const branchingClass = isBranching ? 'branching' : '';
+
+                // Tree connector symbols
+                const connector = isRoot ? '' : (isLastSibling ? '└── ' : '├── ');
+                const branchBadge = isBranching ? `<span class="branch-badge">🌿 ${childCount} branches</span>` : '';
+
+                // Add visual indicator for branches
+                const metricText = step.metric !== null ? 'Score: ' + step.metric?.toFixed(4) : 'No metric';
+                const branchInfo = isBranching ? ` • ${childCount} branches` : '';
 
                 let html = `
                     <div class="tree-node ${rootClass}">
-                        <div class="node-item ${buggyClass}" data-index="${step.index}" onclick="selectStep(${step.index})">
+                        <div class="node-item ${buggyClass} ${branchingClass}" data-index="${step.index}" onclick="selectStep(${step.index})">
                             <div class="node-label">
-                                ${step.is_buggy ? '⚠️' : '✓'} Step ${step.step}
+                                <span class="tree-connector">${connector}</span>${step.is_buggy ? '⚠️' : '✓'} Step ${step.step}${branchBadge}
                             </div>
                             <div class="node-meta">
-                                ${step.metric !== null ? 'Score: ' + step.metric?.toFixed(4) : 'No metric'}
+                                ${metricText}${branchInfo}
                             </div>
                         </div>
                 `;
 
-                if (childrenMap[step.id]) {
-                    childrenMap[step.id].forEach(child => {
-                        html += buildNode(child, false);
+                if (children.length > 0) {
+                    // Sort children by step number
+                    const sortedChildren = children.sort((a, b) => a.step - b.step);
+
+                    sortedChildren.forEach((child, idx) => {
+                        const isLastChild = idx === sortedChildren.length - 1;
+                        const childPrefix = prefix + (isRoot ? '' : (isLastSibling ? '    ' : '│   '));
+                        html += buildNode(child, false, isLastChild, childPrefix, depth + 1);
                     });
                 }
 
@@ -810,7 +1073,42 @@
                 return html;
             }
 
-            return rootSteps.map(root => buildNode(root, true)).join('');
+            // Sort root steps by step number
+            const sortedRoots = rootSteps.sort((a, b) => a.step - b.step);
+
+            // Build HTML with draft containers using tree structure metadata
+            return sortedRoots.map((root, idx) => {
+                const draftNum = idx + 1;
+                const descendants = countDescendants(root.id);
+                const maxDepth = getMaxDepth(root.id);
+                const bestMetric = getBestMetric(root.id);
+                const bestMetricStr = bestMetric !== null ? bestMetric.toFixed(4) : 'N/A';
+
+                // Get draft info from tree structure if available
+                const draftInfo = treeStructure.drafts.find(d => d.draft_number === draftNum);
+                const structureType = draftInfo ? draftInfo.structure_type : 'Unknown';
+                const branchingPoints = draftInfo ? draftInfo.branching_points.length : 0;
+
+                return `
+                    <div class="draft-container">
+                        <div class="draft-header" onclick="toggleDraft(this)">
+                            <span>📋 Draft ${draftNum} - ${structureType}</span>
+                            <span class="draft-stats">${descendants} nodes • Depth: ${maxDepth} • Best: ${bestMetricStr}${branchingPoints > 0 ? ' • 🌿 ' + branchingPoints + ' branches' : ''}</span>
+                        </div>
+                        <div class="draft-content">
+                            ${buildNode(root, true, true, '', 0)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleDraft(header) {
+            header.classList.toggle('collapsed');
+            const content = header.nextElementSibling;
+            if (content) {
+                content.classList.toggle('collapsed');
+            }
         }
 
         function selectStep(index) {
@@ -831,8 +1129,47 @@
             document.getElementById('prev-btn').disabled = index === 0;
             document.getElementById('next-btn').disabled = index === stepsData.length - 1;
 
+            // Update breadcrumb
+            updateBreadcrumb(step);
+
             // Render content
             renderStepContent(step, index);
+        }
+
+        function updateBreadcrumb(step) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const path = [];
+
+            // Build path from root to current step
+            let currentId = step.id;
+            while (currentId) {
+                const currentStep = stepMap[currentId];
+                if (currentStep) {
+                    path.unshift(currentStep);
+                    currentId = parentMap[currentId];
+                } else {
+                    break;
+                }
+            }
+
+            // Find draft number
+            const rootStep = path[0];
+            const rootSteps = stepsData.filter(s => !s.parent_id).sort((a, b) => a.step - b.step);
+            const draftNum = rootSteps.findIndex(r => r.id === rootStep.id) + 1;
+
+            // Build breadcrumb HTML
+            let html = `<span style="color: #858585;">Draft ${draftNum}</span>`;
+
+            path.forEach((pathStep, idx) => {
+                const isLast = idx === path.length - 1;
+                const isBranching = (childrenMap[pathStep.id] || []).length > 1;
+                const icon = isBranching ? '🌿' : '';
+
+                html += ` <span class="breadcrumb-separator">›</span> `;
+                html += `<span class="breadcrumb-item ${isLast ? 'current' : ''}" onclick="selectStep(${pathStep.index})">${icon} Step ${pathStep.step}</span>`;
+            });
+
+            breadcrumb.innerHTML = html;
         }
 
         function renderStepContent(step, index) {
@@ -868,8 +1205,13 @@
                 </div>
 
                 <div class="section">
-                    <h3>📝 Plan</h3>
+                    <h3>📝 Plan (Full Text)</h3>
                     <div class="plan-box">${escapeHtml(step.plan || 'No plan available')}</div>
+                </div>
+
+                <div class="section">
+                    <h3>🔍 Feedback / Analysis (Full Text)</h3>
+                    <div class="analysis-box">${escapeHtml(step.analysis || 'No feedback/analysis available')}</div>
                 </div>
 
                 <div class="section">
@@ -879,15 +1221,6 @@
                     </div>
                 </div>
             `;
-
-            if (step.analysis && step.analysis.trim()) {
-                content += `
-                    <div class="section">
-                        <h3>🔍 Feedback / Analysis</h3>
-                        <div class="analysis-box">${escapeHtml(step.analysis)}</div>
-                    </div>
-                `;
-            }
 
             if (prevStep) {
                 const similarity = (1 - step.alignment.change_magnitude) * 100;

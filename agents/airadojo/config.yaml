@@ -1,0 +1,99 @@
+vars:
+  step_count: &step_count 125
+  time_limit: &time_limit 21600  # 6 hours
+
+defaults: &defaults
+  start: airadojo/start.sh
+  dockerfile: airadojo/Dockerfile
+  kwargs_type: omegaconf
+  env_vars: &env_vars
+    TIME_LIMIT_SECS: *time_limit
+    STEP_LIMIT: *step_count
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    PRIMARY_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+# ==========================================
+# GREEDY SEARCH POLICY
+# ==========================================
+# Simple greedy agent variant (default)
+aira-dojo/greedy:
+  <<: *defaults
+  env_vars:
+    <<: *env_vars
+    SEARCH_POLICY: "greedy"
+  kwargs:
+    solver.step_limit: *step_count
+    logger.use_wandb: "False"
+    launcher.debug: "True"
+
+# ==========================================
+# MCTS SEARCH POLICY
+# ==========================================
+# Monte Carlo Tree Search variant
+aira-dojo/mcts:
+  <<: *defaults
+  env_vars:
+    <<: *env_vars
+    SEARCH_POLICY: "mcts"
+  kwargs:
+    solver.step_limit: *step_count
+    solver.num_children: 5
+    solver.uct_c: 0.25
+    logger.use_wandb: "False"
+    launcher.debug: "True"
+
+# ==========================================
+# EVOLUTIONARY SEARCH POLICY
+# ==========================================
+# Evolutionary search variant with islands and crossover
+aira-dojo/evo:
+  <<: *defaults
+  env_vars:
+    <<: *env_vars
+    SEARCH_POLICY: "evo"
+  kwargs:
+    solver.step_limit: *step_count
+    solver.num_islands: 1
+    solver.crossover_prob: 0.5
+    logger.use_wandb: "False"
+    launcher.debug: "True"
+
+# ==========================================
+# DEVELOPMENT VARIANTS
+# ==========================================
+# Development variant with fewer steps for testing (greedy)
+aira-dojo/greedy-dev:
+  <<: *defaults
+  env_vars:
+    <<: *env_vars
+    SEARCH_POLICY: "greedy"
+  kwargs:
+    solver.step_limit: 5
+    logger.use_wandb: "False"
+    launcher.debug: "True"
+
+# Development variant with MCTS for testing
+aira-dojo/mcts-dev:
+  <<: *defaults
+  env_vars:
+    <<: *env_vars
+    SEARCH_POLICY: "mcts"
+  kwargs:
+    solver.step_limit: 5
+    solver.num_children: 3
+    solver.uct_c: 0.25
+    logger.use_wandb: "False"
+    launcher.debug: "True"
+
+# Development variant with evolutionary for testing
+aira-dojo/evo-dev:
+  <<: *defaults
+  env_vars:
+    <<: *env_vars
+    SEARCH_POLICY: "evo"
+  kwargs:
+    solver.step_limit: 5
+    solver.num_islands: 1
+    solver.crossover_prob: 0.5
+    logger.use_wandb: "False"
+    launcher.debug: "True"

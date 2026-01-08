@@ -1,0 +1,16 @@
+ADDITIONAL NOTES
+------
+
+You have access to ${HARDWARE}. The data is located in the `input/` subdirectory. All your code should be saved in a single file called `runfile.py`.
+Your solution should generate a file `submission/submission.csv` which will be automatically submitted.
+
+You have a total of ${TIME_LIMIT} to complete this task (including code execution). Use this time wisely; look at the size of the data and the complexity of the task to estimate how long your code will take to run. Try to find a good solution within the time limit - you don't need to use the entire time if you have a good solution earlier.
+
+Please ensure your code:
+1. Loads data from the `input/` directory
+2. Trains a model and generates predictions
+3. Saves the submission to `submission/submission.csv` in the exact format specified
+4. Prints the validation metric to stdout so it can be captured
+
+Your code will be executed in an isolated environment with the following packages available:
+numpy, pandas, scikit-learn, xgboost, lightgbm, catboost, torch, torchvision, tensorflow, keras, transformers, and many more standard ML libraries.

@@ -1,0 +1,8 @@
+_target_: dojo.config_dataclasses.client.base.ClientConfig
+api: litellm
+model_id: ???
+base_url: null
+use_azure_client: False
+# base_url: https://<<<YOUR_AZURE_ENDPOINT_HERE>>>.azure-api.net
+# use_azure_client: True
+provider: selfhosted

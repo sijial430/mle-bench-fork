@@ -1,0 +1,123 @@
+vars:
+  step_count: &step_count 125
+  time_limit: &time_limit 21600  # 6 hours
+
+defaults: &defaults
+  start: mlmaster/start.sh
+  dockerfile: mlmaster/Dockerfile
+  kwargs_type: omegaconf
+  env_vars: &env_vars
+    TIME_LIMIT_SECS: *time_limit
+    STEP_LIMIT: *step_count
+
+kwargs_common: &kwargs_common
+  agent.search.max_debug_depth: 20
+  agent.search.debug_prob: 1
+  agent.time_limit: *time_limit
+  exec.timeout: 32400  # 9 hours limit per step
+  copy_data: False  # use symbolic links
+  agent.steps: *step_count
+
+# ==========================================
+# ML-MASTER DEFAULT (GPT-5.1)
+# ==========================================
+ml-master:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: gpt-5.1
+    agent.code.temp: 0.5
+    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.temp: 0.5
+    agent.search.parallel_search_num: 3
+    agent.search.num_drafts: 5
+    agent.decay.decay_type: piecewise
+  env_vars:
+    <<: *env_vars
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+# ==========================================
+# ML-MASTER DEEPSEEK-R1 VARIANT
+# ==========================================
+ml-master/deepseek-r1:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: deepseek-r1
+    agent.code.temp: 0.5
+    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.temp: 0.5
+    agent.search.parallel_search_num: 3
+    agent.search.num_drafts: 5
+    agent.decay.decay_type: piecewise
+  env_vars:
+    <<: *env_vars
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+
+# ==========================================
+# ML-MASTER GPT-4O VARIANT
+# ==========================================
+ml-master/gpt-4o:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: gpt-4o-2024-08-06
+    agent.code.temp: 0.5
+    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.temp: 0.5
+    agent.search.parallel_search_num: 3
+  env_vars:
+    <<: *env_vars
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+# ==========================================
+# ML-MASTER CLAUDE VARIANT
+# ==========================================
+ml-master/claude-3-5-sonnet:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: claude-3-5-sonnet-20240620
+    agent.code.temp: 0.5
+    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.temp: 0.5
+    agent.search.parallel_search_num: 3
+  env_vars:
+    <<: *env_vars
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+# ==========================================
+# DEVELOPMENT VARIANTS
+# ==========================================
+ml-master/dev:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: gpt-4o-2024-08-06
+    agent.code.temp: 0.5
+    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.temp: 0.5
+    agent.steps: 8
+    agent.search.parallel_search_num: 2
+    agent.search.num_drafts: 2
+  env_vars:
+    <<: *env_vars
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+# Single-threaded debug variant
+ml-master/debug:
+  <<: *defaults
+  kwargs:
+    <<: *kwargs_common
+    agent.code.model: gpt-4o-2024-08-06
+    agent.code.temp: 0.5
+    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.temp: 0.5
+    agent.steps: 5
+    agent.search.parallel_search_num: 1
+    agent.search.num_drafts: 1
+  env_vars:
+    <<: *env_vars
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

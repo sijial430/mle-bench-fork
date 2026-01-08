@@ -1,0 +1,706 @@
+================================================================================
+FOUR-WAY COMPARISON: AIDE vs R&D-Agent vs ML-Master vs AIRA-Dojo
+Search Policy and Summarization Operators Analysis
+================================================================================
+
+OVERVIEW
+================================================================================
+
+This document compares four ML engineering agents:
+1. AIDE (original) - Simple greedy search with journal-based memory
+2. R&D-Agent - Hypothesis-driven loop with UCB action selection and RAG
+3. ML-Master - MCTS tree search with UCT and sibling memory
+4. AIRA-Dojo - Modular framework extending AIDE (Greedy/MCTS/Evo solvers)
+
+
+ARCHITECTURE OVERVIEW
+================================================================================
+
+AIDE (Original Greedy Search)
+-----------------------------
+    +---------------------+
+    | search_policy()     |
+    |   - draft           |
+    |   - debug (random)  |
+    |   - improve (best)  |
+    |         |           |
+    |         v           |
+    | plan_and_code_query |
+    |         |           |
+    |         v           |
+    | parse_exec_result   |
+    |         |           |
+    |         v           |
+    | journal.append()    |
+    +---------------------+
+
+    Memory: journal.generate_summary()
+    (all good nodes: Design + Results + Metric)
+
+R&D-Agent (Hypothesis-Driven Loop)
+----------------------------------
+    +---------------------+
+    | Hypothesis Gen      |  <- RAG Knowledge
+    | (UCB over actions)  |
+    |         |           |
+    |         v           |
+    | Hyp2Experiment      |
+    |         |           |
+    |         v           |
+    | Coder -> Runner     |
+    |         |           |
+    |         v           |
+    | Feedback Gen        |
+    | (SOTA comparison)   |
+    |         |           |
+    |         v           |
+    | Trace.hist.append() |
+    +---------------------+
+
+ML-Master (MCTS Tree)
+---------------------
+         virtual_root
+    +---+---+---+---+
+    | d | d | d | d |  (draft nodes)
+    +-+-+-+-+-+-+-+-+
+      |   |   |   |
+      v   v   v   v
+    improve/debug children
+      |   |   |   |
+      v   v   v   v
+    grandchildren...
+
+    UCT: Q + c * sqrt(ln(N)/n)
+    + fetch_child_memory()
+
+AIRA-Dojo (Modular Solver Framework)
+------------------------------------
+    +-----------------------------+
+    | Solver (Greedy/MCTS/Evo)    |
+    |  +------------------------+ |
+    |  | Memory Op (pluggable)  | |
+    |  | - simple_memory        | |
+    |  | - sibling_memory       | |
+    |  | - ancestral_memory     | |
+    |  | - no_memory            | |
+    |  +------------------------+ |
+    |                             |
+    | Operators: draft, improve,  |
+    | debug, analyze, crossover   |
+    +-----------------------------+
+
+
+================================================================================
+SEARCH POLICY COMPARISON
+================================================================================
+
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Aspect                 | AIDE             | R&D-Agent                 | ML-Master                 | AIRA-Dojo                        |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Strategy Type          | Greedy           | UCB over 4 action types   | UCT over tree nodes       | 3 options: Greedy/MCTS/Evo       |
+| Formula                | argmax(metric)   | mu + c*sqrt(ln(t)/n)      | Q + c*sqrt(ln(N)/n)       | MCTS: normalized UCT             |
+|                        |                  |                           |                           | Evo: temp-based sampling         |
+| Q-Value Normalization  | No               | No                        | No                        | Yes (global min/max tracking)    |
+| Branching Factor       | Linear           | Linear (1 per iter)       | Configurable per node     | Configurable                     |
+| Node Selection         | Best metric node | Select action type        | Select tree node          | Greedy: best; MCTS: UCT          |
+|                        |                  |                           |                           | Evo: island+fitness              |
+| Backpropagation        | No               | No                        | Yes                       | MCTS: Yes; Evo: No               |
+| C Decay                | No               | No                        | 4 strategies              | No explicit decay                |
+| Population             | Single journal   | Single trace              | Single tree               | Evo: Multi-island populations    |
+| Crossover              | No               | No                        | No                        | Yes (Evo only)                   |
+| Migration              | No               | No                        | No                        | Yes (Evo: island migration)      |
+| Debug Handling         | Random selection | Part of normal flow       | Dedicated stage           | Random selection + max depth     |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+
+
+AIDE Search Policy (Original)
+-----------------------------
+Source: ~/.local/lib/python3.11/site-packages/aide/agent.py:61-92
+
+def search_policy(self) -> Node | None:
+    """Select a node to work on (or None to draft a new node)."""
+    search_cfg = self.acfg.search
+
+    # Phase 1: initial drafting
+    if len(self.journal.draft_nodes) < search_cfg.num_drafts:
+        logger.debug("[search policy] drafting new node (not enough drafts)")
+        return None
+
+    # Phase 2: debugging (probabilistic)
+    if random.random() < search_cfg.debug_prob:
+        debuggable_nodes = [
+            n for n in self.journal.buggy_nodes
+            if (n.is_leaf and n.debug_depth <= search_cfg.max_debug_depth)
+        ]
+        if debuggable_nodes:
+            logger.debug("[search policy] debugging")
+            return random.choice(debuggable_nodes)
+        logger.debug("[search policy] not debugging by chance")
+
+    # Phase 3: back to drafting if no good nodes
+    good_nodes = self.journal.good_nodes
+    if not good_nodes:
+        logger.debug("[search policy] drafting new node (no good nodes)")
+        return None
+
+    # Phase 4: greedy improvement of best node
+    greedy_node = self.journal.get_best_node()
+    logger.debug("[search policy] greedy node selected")
+    return greedy_node
+
+
+R&D-Agent UCB Action Selection
+------------------------------
+Source: agents/RD-Agent/rdagent/scenarios/kaggle/proposal/proposal.py:228-248
+
+def execute_next_action(self, trace: Trace) -> str:
+    actions = list(self.scen.action_counts.keys())  # 4 action types
+    t = sum(self.scen.action_counts.values()) + 1
+
+    # First try untried actions
+    for action in actions:
+        if self.scen.action_counts[action] == 0:
+            return action
+
+    # UCB selection
+    c = self.scen.confidence_parameter
+    ucb_values = {}
+    for action in actions:
+        mu_o = self.scen.reward_estimates[action]
+        n_o = self.scen.action_counts[action]
+        ucb = mu_o + c * math.sqrt(math.log(t) / n_o)
+        ucb_values[action] = ucb
+    return max(ucb_values, key=ucb_values.get)
+
+Action types:
+- Feature Engineering
+- Feature Processing
+- Model Feature Selection
+- Model Tuning
+
+
+ML-Master UCT Node Selection
+----------------------------
+Source: agents/ML-Master/search/mcts_node.py:37-55
+
+def uct_value(self, exploration_constant: float = 1.414) -> float:
+    """UCT = Q + c * sqrt(ln(N) / n)"""
+    if self.visits == 0:
+        return float('inf')  # Unvisited nodes highest priority
+    exploitation = self.total_reward / self.visits
+    exploration = exploration_constant * (math.log(parent_visits) / self.visits) ** 0.5
+    return exploitation + exploration
+
+C Decay Strategies (agents/ML-Master/utils/mcts.py):
+- linear_decay: C - alpha*t
+- exponential_decay: C * gamma^t
+- piecewise_decay: Constant -> Linear -> Lower in phases
+- dynamic_piecewise_decay: Adapts based on time remaining & generation speed
+
+
+AIRA-Dojo Greedy Search Policy
+------------------------------
+Source: agents/aira-dojo-fork/src/dojo/solvers/greedy/greedy.py:197-240
+
+def search_policy(self) -> Node | None:
+    # Phase 1: Draft until num_drafts reached
+    if len(self.journal.draft_nodes) < self.cfg.num_drafts:
+        return None  # -> draft
+
+    # Phase 2: Maybe debug (probabilistic)
+    if random.random() < self.cfg.debug_prob:
+        debuggable = [n for n in self.journal.buggy_nodes
+                      if n.is_leaf and n.debug_depth <= self.cfg.max_debug_depth]
+        if debuggable:
+            return random.choice(debuggable)  # -> debug
+
+    # Phase 3: Improve best node
+    good_nodes = self.journal.good_nodes
+    if not good_nodes:
+        return None  # -> draft (no good solutions yet)
+    return self.journal.get_best_node()  # -> improve
+
+
+AIRA-Dojo MCTS with Normalized UCT
+----------------------------------
+Source: agents/aira-dojo-fork/src/dojo/solvers/mcts/mcts.py:44-65
+
+def normalise_q_value(q_value, global_max, global_min):
+    if global_max == global_min:
+        return 0.5  # Neutral
+    return (q_value - global_min) / (global_max - global_min)
+
+def uct_value(q_value, explore_count, parent_explore_count, uct_c, global_max, global_min):
+    if explore_count == 0:
+        return -1e8  # Not inf, but very low
+    norm_q = normalise_q_value(q_value, global_max, global_min)
+    exploration = sqrt(log(parent_explore_count) / explore_count)
+    return norm_q + uct_c * exploration
+
+
+AIRA-Dojo Evolutionary Island-Based Search
+------------------------------------------
+Source: agents/aira-dojo-fork/src/dojo/solvers/evo/evo.py
+
+Key concepts:
+- SolutionsDatabase: Multiple islands, each with a population of nodes
+- Fitness-weighted sampling for selection
+- Island migration: best nodes spread to weak islands
+- Temperature decay for exploration -> exploitation
+- Crossover operator for combining solutions from different parents
+
+
+================================================================================
+MEMORY/SUMMARIZATION COMPARISON
+================================================================================
+
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Aspect                 | AIDE             | R&D-Agent                 | ML-Master                 | AIRA-Dojo                        |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Memory Architecture    | Single method    | RAG from knowledge graph  | Hardcoded fetch_child_mem | Pluggable factory                |
+| Memory Options         | 1 (journal sum)  | 1 (RAG)                   | 1 (sibling)               | 4 (simple/sibling/ancestral/no)  |
+| Sibling Awareness      | No               | No                        | Yes                       | Yes (sibling_memory)             |
+| Ancestral Path         | No               | Via trace.hist            | Via parent chain          | Yes (ancestral_memory)           |
+| Full Journal           | Yes (good nodes) | Yes                       | No                        | Yes (simple_memory)              |
+| Cross-Competition      | No               | Yes (RAG knowledge graph) | No                        | No                               |
+| Debug Memory           | Same as improve  | Same as improve           | Same as improve           | Separate config                  |
+| Next Step Suggestion   | No               | Yes (new_hypothesis)      | No                        | No                               |
+| Includes Buggy Nodes   | No (good only)   | Configurable              | Yes                       | Configurable                     |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+
+
+AIDE Memory (Journal Summary)
+-----------------------------
+Source: ~/.local/lib/python3.11/site-packages/aide/journal.py:182-192
+
+def generate_summary(self, include_code: bool = False) -> str:
+    """Generate a summary of the journal for the agent."""
+    summary = []
+    for n in self.good_nodes:  # Only good (non-buggy) nodes
+        summary_part = f"Design: {n.plan}\n"
+        if include_code:
+            summary_part += f"Code: {n.code}\n"
+        summary_part += f"Results: {n.analysis}\n"
+        summary_part += f"Validation Metric: {n.metric.value}\n"
+        summary.append(summary_part)
+    return "\n-------------------------------\n".join(summary)
+
+
+R&D-Agent RAG-Based Memory
+--------------------------
+Source: agents/RD-Agent/rdagent/scenarios/kaggle/proposal/proposal.py:58-182
+
+def generate_RAG_content(scen, trace, hypothesis_and_feedback, target=None,
+                         chosen_hypothesis=None, chosen_hypothesis_type=None):
+    if scen.if_using_vector_rag:
+        rag_results, _ = scen.vector_base.search_experience(target, hypothesis_and_feedback, topk_k=5)
+        return "\n".join([doc.content for doc in rag_results])
+
+    if scen.if_using_graph_rag:
+        # Get nodes from same competition
+        same_competition_node = trace.knowledge_base.get_node_by_content(
+            trace.scen.get_competition_full_desc()
+        )
+        # Retrieve related hypothesis nodes
+        related_hypothesis_nodes = trace.knowledge_base.get_nodes_within_steps(
+            start_node=same_competition_node, steps=1, constraint_labels=[action]
+        )
+        # Semantic search for similar hypotheses
+        similar_nodes = trace.knowledge_base.semantic_search(node=chosen_hypothesis, topk_k=2)
+
+
+R&D-Agent Feedback Generation
+-----------------------------
+Source: agents/RD-Agent/rdagent/scenarios/kaggle/developer/feedback.py:40-191
+
+class KGExperiment2Feedback(Experiment2Feedback):
+    def generate_feedback(self, exp, trace) -> HypothesisFeedback:
+        # Compare current vs SOTA
+        sota_features = str(exp.based_experiments[-1].experiment_workspace.data_description)
+        sota_models = json.dumps(exp.based_experiments[-1].experiment_workspace.model_description)
+        sota_result = exp.based_experiments[-1].result
+
+        # LLM generates structured feedback
+        response_json = json.loads(response)
+        return HypothesisFeedback(
+            observations=response_json.get("Observations"),
+            hypothesis_evaluation=response_json.get("Feedback for Hypothesis"),
+            new_hypothesis=response_json.get("New Hypothesis"),  # Suggests next step!
+            reason=response_json.get("Reasoning"),
+            decision=convert2bool(response_json.get("Replace Best Result")),
+        )
+
+
+ML-Master Sibling Memory
+------------------------
+Source: agents/ML-Master/search/mcts_node.py:106-125
+
+def fetch_child_memory(self, include_code=False):
+    """Collect information about siblings (children of same parent)"""
+    summary = []
+    for n in self.children:
+        if n.is_buggy is not None:
+            summary_part = f"Design: {n.plan}\n"
+            if n.is_buggy is True:
+                summary_part += f"Results: The implementation of this design has bugs.\n"
+                summary_part += f"Insight: Using a different approach may not result in the same bugs.\n"
+            else:
+                summary_part += f"Results: {n.analysis}\n"
+                summary_part += f"Validation Metric: {n.metric.value}\n"
+            summary.append(summary_part)
+    return "\n-------------------------------\n".join(summary)
+
+
+AIRA-Dojo Memory Operator Factory
+---------------------------------
+Source: agents/aira-dojo-fork/src/dojo/core/solvers/operators/memory.py:28-49
+
+def create_memory_op(cfg: MemoryOpConfig) -> Callable:
+    """Factory for creating memory operators"""
+    memory_processor = MEM_OPS[cfg.memory_processor]
+
+    def memory_op(journal: Journal, node: Optional[Node] = None) -> str:
+        memory = memory_processor(journal=journal, node=node, **cfg.memory_op_kwargs)
+        return memory if memory else "(No memory available.)"
+
+    return memory_op
+
+MEM_OPS = {
+    "simple_memory": simple_memory,      # All good nodes in journal
+    "no_memory": no_memory,              # Empty
+    "sibling_memory": sibling_memory,    # Children of parent node
+    "ancestral_memory": ancestral_memory # Path from root to node
+}
+
+
+AIRA-Dojo Simple Memory (Full Journal Summary)
+----------------------------------------------
+Source: agents/aira-dojo-fork/src/dojo/core/solvers/operators/memory.py:101-124
+
+def generate_journal_summary(journal, include_code=False, include_buggy_nodes=False):
+    """Summarize all nodes in journal"""
+    nodes = journal.nodes if include_buggy_nodes else journal.good_nodes
+    summary = []
+    for node in nodes:
+        summary.append(f"Design: {node.plan}")
+        if not only_plans:
+            summary.append(f"Results: {node.analysis}")
+            summary.append(f"Validation Metric: {node.metric.value}")
+    return "\n-------------------------------\n".join(summary)
+
+
+AIRA-Dojo Ancestral Memory (Path to Node)
+-----------------------------------------
+Source: agents/aira-dojo-fork/src/dojo/core/solvers/operators/memory.py:127-164
+
+def generate_ancestral_summary(node, until_successful_parent=True):
+    """Walk back from node to root, collecting summaries"""
+    summaries_in_reverse = []
+    while node is not None:
+        if until_successful_parent and not node.is_buggy:
+            break  # Stop at first successful ancestor
+        summaries_in_reverse.append(get_node_summary(node))
+        node = node.parents[0] if node.parents else None
+    return "\n".join(reversed(summaries_in_reverse))
+
+
+AIRA-Dojo Sibling Memory
+------------------------
+Source: agents/aira-dojo-fork/src/dojo/core/solvers/operators/memory.py:198-233
+
+def get_sibling_summary(parent_node, include_code=False, include_buggy_nodes=True, only_plans=True):
+    separator = "\n-------------------------------\n"
+    previous_siblings = [node for node in parent_node.children]
+
+    summaries = []
+    for node in previous_siblings:
+        if include_buggy_nodes or not node.is_buggy:
+            node_summary = get_node_summary(node, include_code=include_code, only_plans=only_plans)
+            if node_summary:
+                summaries.append(node_summary)
+
+    return separator.join(summaries) if summaries else "(No memory available.)"
+
+
+================================================================================
+FEEDBACK/ANALYSIS COMPARISON
+================================================================================
+
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Aspect                 | AIDE             | R&D-Agent                 | ML-Master                 | AIRA-Dojo                        |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Analysis Operator      | LLM w/ func spec | LLM in generate_feedback  | LLM via parse_exec_result | Dedicated analyze_op()           |
+| Output Schema          | is_bug, summary, | Custom JSON w/ hypothesis | is_bug, has_csv, summary  | is_bug, summary, metric          |
+|                        | metric, lower_is |                           |                           |                                  |
+| Bug Detection          | is_bug OR        | is_bug + metric None      | is_bug + exc_type +       | is_bug + exit_code +             |
+|                        | exc_type OR      |                           | metric None + no csv      | metric None + validity           |
+|                        | metric None      |                           |                           |                                  |
+| Metric Direction       | LLM determines   | From scenario config      | From config               | From config                      |
+|                        | lower_is_better  |                           |                           |                                  |
+| Validity Check         | None             | None                      | CSV format check          | Grader feedback integration      |
+| Fix Suggestion         | In summary field | In analysis summary       | In analysis summary       | In analysis summary              |
+| SOTA Comparison        | No               | Yes (explicit)            | Via local_best_node       | Via journal.get_best_node()      |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+
+
+AIDE Feedback Function Spec
+---------------------------
+Source: ~/.local/lib/python3.11/site-packages/aide/agent.py:19-44
+
+review_func_spec = FunctionSpec(
+    name="submit_review",
+    json_schema={
+        "type": "object",
+        "properties": {
+            "is_bug": {
+                "type": "boolean",
+                "description": "true if the output log shows that the execution failed or has some bug, otherwise false.",
+            },
+            "summary": {
+                "type": "string",
+                "description": "if there is a bug, propose a fix. Otherwise, write a short summary (2-3 sentences) describing the empirical findings.",
+            },
+            "metric": {
+                "type": "number",
+                "description": "If the code ran successfully, report the value of the validation metric. Otherwise, leave it null.",
+            },
+            "lower_is_better": {
+                "type": "boolean",
+                "description": "true if the metric should be minimized, false if maximized.",
+            },
+        },
+        "required": ["is_bug", "summary", "metric", "lower_is_better"],
+    },
+    description="Submit a review evaluating the output of the training script.",
+)
+
+
+AIDE Parse Execution Result
+---------------------------
+Source: ~/.local/lib/python3.11/site-packages/aide/agent.py:296-339
+
+def parse_exec_result(self, node: Node, exec_result: ExecutionResult):
+    node.absorb_exec_result(exec_result)
+
+    prompt = {
+        "Introduction": "You are a Kaggle grandmaster... evaluate the output of the code execution.",
+        "Task description": self.task_desc,
+        "Implementation": wrap_code(node.code),
+        "Execution output": wrap_code(node.term_out, lang=""),
+    }
+
+    response = query(
+        system_message=prompt,
+        func_spec=review_func_spec,
+        model=self.acfg.feedback.model,
+        temperature=self.acfg.feedback.temp,
+    )
+
+    # Bug detection: is_bug OR exception OR no metric
+    node.is_buggy = (
+        response["is_bug"]
+        or node.exc_type is not None
+        or response["metric"] is None
+    )
+
+    if node.is_buggy:
+        node.metric = WorstMetricValue()
+    else:
+        node.metric = MetricValue(
+            response["metric"], maximize=not response["lower_is_better"]
+        )
+
+
+AIRA-Dojo Analyze Operator
+--------------------------
+Source: agents/aira-dojo-fork/src/dojo/core/solvers/operators/analyze.py:48-72
+
+def analyze_op(analyze_llm, cfg, task_description, input_node, fetch_metric=True):
+    analyze_data = {
+        "task_desc": task_description,
+        "code": wrap_code(input_node.code),
+        "execution_output": wrap_code(input_node.term_out),
+    }
+
+    schema = """{
+        "is_bug": {"type": "boolean", "description": "true if execution failed..."},
+        "summary": {"type": "string", "description": "if bug, propose fix; else describe findings"},
+        "metric": {"type": "number", "description": "validation metric if successful"}
+    }"""
+
+    return analyze_llm(query_data=analyze_data, json_schema=schema)
+
+
+================================================================================
+LINEAGE AND EVOLUTION
+================================================================================
+
+AIDE is the original agent, and the others evolved from or parallel to it:
+
+    AIDE (Weco AI, 2024)
+        |
+        |-- Simple greedy search
+        |-- Journal-based memory (good nodes only)
+        |-- LLM determines metric direction
+        |
+        +---> AIRA-Dojo (Meta, 2024)
+                |
+                |-- Extended with pluggable memory
+                |-- Added MCTS and Evolutionary solvers
+                |-- Added crossover and migration
+                |-- Added Q-value normalization
+                |-- Separate debug memory config
+
+    Parallel developments:
+
+    R&D-Agent
+        |-- Hypothesis-driven structure
+        |-- UCB over action types
+        |-- RAG knowledge transfer
+        |-- new_hypothesis suggestions
+
+    ML-Master
+        |-- MCTS tree search
+        |-- UCT with C decay strategies
+        |-- Sibling memory (fetch_child_memory)
+
+
+================================================================================
+KEY DIFFERENTIATORS SUMMARY
+================================================================================
+
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Feature                | AIDE             | R&D-Agent                 | ML-Master                 | AIRA-Dojo                        |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+| Best For               | Simple, fast     | Structured hypothesis     | Deep tree search          | Flexible experimentation         |
+|                        | prototyping      | exploration               |                           |                                  |
+| Unique Strength        | Simplicity,      | RAG + UCB action          | Dynamic C decay +         | Modular design +                 |
+|                        | auto metric dir  | selection                 | sibling memory            | Evolutionary                     |
+| Memory Flexibility     | Low (1 type)     | Low (RAG only)            | Low (sibling only)        | High (4 pluggable options)       |
+| Search Flexibility     | Low (greedy)     | Low (linear)              | Medium (tree)             | High (3 solvers)                 |
+| Crossover/Migration    | No               | No                        | No                        | Yes                              |
+| Q-Normalization        | No               | No                        | No                        | Yes                              |
+| Separate Debug Memory  | No               | No                        | No                        | Yes                              |
+| Auto Metric Direction  | Yes (LLM)        | No (config)               | No (config)               | No (config)                      |
+| Codebase Complexity    | Low (~400 LOC)   | High                      | Medium                    | High                             |
++------------------------+------------------+---------------------------+---------------------------+----------------------------------+
+
+
+================================================================================
+RECOMMENDATIONS FOR HYBRID APPROACH
+================================================================================
+
+1. FROM AIDE TO OTHERS:
+   - Auto metric direction detection is useful for unknown tasks
+   - Simple journal summary is efficient and often sufficient
+   - Simplicity makes it easy to debug and extend
+
+2. FROM AIRA-DOJO TO OTHERS:
+   - Port the pluggable memory factory design
+   - Allows rapid experimentation with different memory strategies
+   - Separate debug memory configuration is valuable
+
+3. FROM R&D-AGENT TO OTHERS:
+   - Port RAG integration for cross-competition knowledge transfer
+   - Hypothesis structure provides clearer reasoning chains
+   - "new_hypothesis" suggestion in feedback guides next steps
+
+4. FROM ML-MASTER TO AIRA-DOJO:
+   - Add dynamic C decay strategies to MCTS solver
+   - Especially useful: dynamic_piecewise_decay that adapts to time/progress
+
+5. OPTIMAL HYBRID DESIGN:
+   - AIRA-Dojo's modular framework as the base
+   - AIDE's auto metric direction detection
+   - R&D-Agent's hypothesis structure + RAG knowledge transfer
+   - ML-Master's dynamic exploration decay
+   - AIRA-Dojo's evolutionary crossover for diverse solutions
+   - Q-value normalization from AIRA-Dojo MCTS
+
+6. SPECIFIC IMPROVEMENTS:
+   a) Add sibling_memory to AIDE and R&D-Agent to prevent redundant experiments
+   b) Add RAG to ML-Master and AIRA-Dojo for cross-competition learning
+   c) Add new_hypothesis suggestion to AIDE/AIRA-Dojo/ML-Master feedback
+   d) Add tree structure to R&D-Agent for non-linear exploration
+   e) Add island migration to ML-Master for population diversity
+   f) Add auto metric direction to all agents (currently only AIDE has it)
+
+
+================================================================================
+CONFIGURATION COMPARISON
+================================================================================
+
+AIDE Default Config (agents/aide/config.yaml)
+---------------------------------------------
+agent.search.max_debug_depth: 20
+agent.search.debug_prob: 1  # always debug when available
+agent.time_limit: 21600  # 6 hours
+exec.timeout: 32400  # 9 hours per step
+agent.steps: 125
+
+Key: Simple config, high debug probability
+
+
+R&D-Agent Config
+----------------
+- 4 action types with UCB selection
+- confidence_parameter for exploration
+- RAG settings (vector vs graph)
+- Hypothesis structure parameters
+
+Key: Action-type focused, RAG-enabled
+
+
+ML-Master Config
+----------------
+- UCT exploration constant (c)
+- C decay strategy selection
+- num_drafts, num_improves, num_bugs limits
+- max_debug_depth, max_improve_failure
+
+Key: Tree search parameters
+
+
+AIRA-Dojo Config
+----------------
+- Solver selection (greedy/mcts/evo)
+- Memory operator selection
+- Island parameters (for evo)
+- Temperature schedule
+- Crossover and migration probabilities
+
+Key: Most configurable
+
+
+================================================================================
+SOURCE FILE REFERENCES
+================================================================================
+
+AIDE:
+- ~/.local/lib/python3.11/site-packages/aide/agent.py (main agent, search policy)
+- ~/.local/lib/python3.11/site-packages/aide/journal.py (journal, memory)
+- agents/aide/config.yaml (configuration)
+
+R&D-Agent:
+- agents/RD-Agent/rdagent/scenarios/kaggle/proposal/proposal.py (hypothesis gen, UCB)
+- agents/RD-Agent/rdagent/scenarios/kaggle/developer/feedback.py (feedback gen)
+- agents/RD-Agent/rdagent/core/proposal.py (base classes)
+- agents/RD-Agent/rdagent/components/workflow/rd_loop.py (main loop)
+
+ML-Master:
+- agents/ML-Master/agent/mcts_agent.py (main agent, draft/improve/debug)
+- agents/ML-Master/search/mcts_node.py (UCT, sibling memory)
+- agents/ML-Master/utils/mcts.py (C decay strategies)
+
+AIRA-Dojo:
+- agents/aira-dojo-fork/src/dojo/solvers/greedy/greedy.py (greedy solver)
+- agents/aira-dojo-fork/src/dojo/solvers/mcts/mcts.py (MCTS solver)
+- agents/aira-dojo-fork/src/dojo/solvers/evo/evo.py (evolutionary solver)
+- agents/aira-dojo-fork/src/dojo/core/solvers/operators/memory.py (memory factory)
+- agents/aira-dojo-fork/src/dojo/core/solvers/operators/analyze.py (analysis)
+- agents/aira-dojo-fork/src/dojo/core/solvers/operators/improve.py (improve op)
+- agents/aira-dojo-fork/src/dojo/core/solvers/operators/draft.py (draft op)
+
+================================================================================
+END OF ANALYSIS
+================================================================================

@@ -23,7 +23,6 @@ rd-agent:
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     # Core model settings
     DS_CHAT_MODEL: gpt-5.1
-    DS_CHAT_TEMPERATURE: "0.5"
     DS_FEEDBACK_MODEL: gpt-5.1-mini
     # Multi-trace settings
     DS_MAX_TRACE_NUM: "3"
@@ -104,9 +103,10 @@ rd-agent/dev:
   env_vars:
     <<: *env_vars
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    DS_CHAT_MODEL: gpt-4o-2024-08-06
-    DS_CHAT_TEMPERATURE: "0.5"
-    DS_FEEDBACK_MODEL: gpt-5.1-mini
+    DS_CHAT_MODEL: gpt-4.1-nano-2025-04-14
+    DS_CHAT_TEMPERATURE: "1"
+    DS_FEEDBACK_MODEL: gpt-4.1-nano-2025-04-14
+    DS_FEEDBACK_TEMPERATURE: "1"
     DS_MAX_TRACE_NUM: "1"
     DS_DEBUG_TIMEOUT: "300"
     DS_FULL_TIMEOUT: "1800"
@@ -124,9 +124,10 @@ rd-agent/debug:
   env_vars:
     <<: *env_vars
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    DS_CHAT_MODEL: gpt-4o-2024-08-06
-    DS_CHAT_TEMPERATURE: "0.5"
-    DS_FEEDBACK_MODEL: gpt-5.1-mini
+    DS_CHAT_MODEL: gpt-4.1-nano-2025-04-14
+    DS_CHAT_TEMPERATURE: "1"
+    DS_FEEDBACK_MODEL: gpt-4.1-nano-2025-04-14
+    DS_FEEDBACK_TEMPERATURE: "1"
     DS_MAX_TRACE_NUM: "1"
     DS_DEBUG_TIMEOUT: "120"
     DS_FULL_TIMEOUT: "600"

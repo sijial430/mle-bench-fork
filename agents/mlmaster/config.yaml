@@ -26,9 +26,7 @@ ml-master:
   kwargs:
     <<: *kwargs_common
     agent.code.model: gpt-5.1
-    agent.code.temp: 0.5
     agent.feedback.model: gpt-5.1-mini
-    agent.feedback.temp: 0.5
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise
@@ -46,7 +44,6 @@ ml-master/deepseek-r1:
     agent.code.model: deepseek-r1
     agent.code.temp: 0.5
     agent.feedback.model: gpt-5.1-mini
-    agent.feedback.temp: 0.5
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise
@@ -65,7 +62,6 @@ ml-master/gpt-4o:
     agent.code.model: gpt-4o-2024-08-06
     agent.code.temp: 0.5
     agent.feedback.model: gpt-5.1-mini
-    agent.feedback.temp: 0.5
     agent.search.parallel_search_num: 3
   env_vars:
     <<: *env_vars
@@ -81,7 +77,6 @@ ml-master/claude-3-5-sonnet:
     agent.code.model: claude-3-5-sonnet-20240620
     agent.code.temp: 0.5
     agent.feedback.model: gpt-5.1-mini
-    agent.feedback.temp: 0.5
     agent.search.parallel_search_num: 3
   env_vars:
     <<: *env_vars
@@ -95,10 +90,10 @@ ml-master/dev:
   <<: *defaults
   kwargs:
     <<: *kwargs_common
-    agent.code.model: gpt-4o-2024-08-06
-    agent.code.temp: 0.5
-    agent.feedback.model: gpt-5.1-mini
-    agent.feedback.temp: 0.5
+    agent.code.model: gpt-4.1-nano-2025-04-14
+    agent.code.temp: 1
+    agent.feedback.model: gpt-4.1-nano-2025-04-14
+    agent.feedback.temp: 1
     agent.steps: 8
     agent.search.parallel_search_num: 2
     agent.search.num_drafts: 2
@@ -111,10 +106,10 @@ ml-master/debug:
   <<: *defaults
   kwargs:
     <<: *kwargs_common
-    agent.code.model: gpt-4o-2024-08-06
-    agent.code.temp: 0.5
-    agent.feedback.model: gpt-5.1-mini
-    agent.feedback.temp: 0.5
+    agent.code.model: gpt-4.1-nano-2025-04-14
+    agent.code.temp: 1
+    agent.feedback.model: gpt-4.1-nano-2025-04-14
+    agent.feedback.temp: 1
     agent.steps: 5
     agent.search.parallel_search_num: 1
     agent.search.num_drafts: 1

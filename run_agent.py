@@ -22,6 +22,10 @@ from mlebench.utils import create_run_dir, get_logger, get_runs_dir, get_timesta
 logger = get_logger(__name__)
 
 
+# The @dataclass(frozen=True) decorator marks Task as a dataclass whose fields are immutable (frozen),
+# meaning once an instance is created, its attribute values cannot be changed. This is useful for
+# safety and correctness in concurrent or asynchronous settings, where tasks should be passed around
+# without risk of accidental modification. However, you could remove 'frozen=True' if immutability is unnecessary.
 @dataclass(frozen=True)
 class Task:
     run_id: str
@@ -89,7 +93,12 @@ async def worker(
 
 
 async def main(args):
-    client = docker.from_env()
+    if args.runtime == "apptainer":
+        from agents import apptainer_client
+        client = apptainer_client.from_env()
+    else:
+        client = docker.from_env()
+        
     global registry
     registry = registry.set_data_dir(Path(args.data_dir))
 
@@ -229,6 +238,13 @@ if __name__ == "__main__":
         type=str,
         required=False,
         default=registry.get_data_dir(),
+    )
+    parser.add_argument(
+        "--runtime",
+        help="Container runtime to use: 'docker' (default) or 'apptainer'.",
+        type=str,
+        choices=["docker", "apptainer"],
+        default="docker",
     )
     args = parser.parse_args()
     logger = get_logger(__name__)

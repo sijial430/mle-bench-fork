@@ -98,7 +98,7 @@ def run_in_container(
     Runs environment containing the competition and agent for a set maximum amount of time.
 
     Args:
-        client: Docker client.
+        client: Docker or Apptainer client.
         competition: The competition to run.
         agent: The agent to run.
         image: The Docker image to use. Assumes the image is built.
@@ -110,6 +110,13 @@ def run_in_container(
     Returns:
         Path to the output file.
     """
+    # Adjust volume paths for Apptainer if necessary, or trust the shim
+    # Get the agent's directory (parent of start.sh)
+    agent_dir = agent.start.parent.resolve().as_posix()
+
+    # Get the mlebench source directory (for agents that need it like aira-dojo)
+    mlebench_dir = Path(__file__).parent.parent / "mlebench"
+
     volumes_config = {
         competition.public_dir.resolve().as_posix(): {
             "bind": "/home/data",
@@ -119,7 +126,18 @@ def run_in_container(
             "bind": f"/private/data/{competition.id}/prepared/private/",
             "mode": "ro",
         },
+        agent_dir: {
+            "bind": "/home/agent",
+            "mode": "ro",
+        },
     }
+
+    # Mount mlebench source for aira-dojo agents (superimage doesn't have it installed)
+    if agent.id.startswith("aira-dojo") and mlebench_dir.exists():
+        volumes_config[mlebench_dir.resolve().as_posix()] = {
+            "bind": "/home/mlebench",
+            "mode": "ro",
+        }
 
     container = create_competition_container(
         client=client,
@@ -137,14 +155,35 @@ def run_in_container(
     logger.info(purple(f"Run started: {run_dir}"))
     try:
         time_start = time.monotonic()
-        container.start()
-        exit_code, _ = container.exec_run(
-            'timeout 60s sh -c "while ! curl -s http://localhost:5000/health > /dev/null; do sleep 1; done"'
-        )
-        if exit_code != 0:
-            raise RuntimeError(
-                "The grading server failed to start within 60 seconds. This is likely due to an error in `entrypoint.sh`; check the logs."
+        
+        # Docker client requires explicit start, Apptainer shim starts on creation
+        # We can check if it has a 'start' method and call it if so (Docker)
+        # or if it's already running (Apptainer shim might auto-start)
+        # But consistent with the shim design, let's assume create_competition_container
+        # calls client.containers.create which might return a started or stopped container.
+        # The shim's 'create' starts the instance.
+        # Docker's 'create' does NOT start.
+        
+        try:
+            container.start()
+        except:
+            # If start fails or doesn't exist (shim might not need it if already started)
+            # Check if it's the Apptainer shim
+             if not hasattr(container, "status") or container.status != "created":
+                 pass # Assume it's running or doesn't support start
+        
+        # Skip grading server check for agents that have their own validation (e.g., aira-dojo)
+        skip_grading_server = agent.id.startswith("aira-dojo")
+        if not skip_grading_server:
+            exit_code, _ = container.exec_run(
+                'timeout 60s sh -c "while ! curl -s http://localhost:5000/health > /dev/null; do sleep 1; done"'
             )
+            if exit_code != 0:
+                raise RuntimeError(
+                    "The grading server failed to start within 60 seconds. This is likely due to an error in `entrypoint.sh`; check the logs."
+                )
+        else:
+            logger.info("Skipping grading server check for aira-dojo agent")
         execute_agent(container, agent, logger)
         save_output(container, run_dir, container_config)
         time_end = time.monotonic()

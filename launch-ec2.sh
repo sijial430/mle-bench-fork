@@ -16,9 +16,9 @@
 # "siim-covid19-detection" \ # 180GB data
 # "icecube-neutrinos-in-deep-ice" \ # 180GB data
 
-for competition in "dog-breed-identification" \
-  "billion-word-imputation" \
-  "facebook-recruiting-iii-keyword-extraction" \
+for competition in "tensorflow2-question-answering" \
+  "new-york-city-taxi-fare-prediction" \
+  "smartphone-decimeter-2022" \
 ; do
     for agent_id in "aide"; do
         aws ec2 run-instances --image-id 'ami-0ecb62995f68bb549' \
@@ -31,7 +31,7 @@ for competition in "dog-breed-identification" \
             --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":true,"EnableResourceNameDnsAAAARecord":false}' \
             --count '1' \
             --user-data file://ec2-startup-aide-dev.sh \
-            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$agent_id-$competition-64gb-6hrs-125steps-0106},{Key=Competition,Value=$competition},{Key=AgentId,Value=$agent_id}]"
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$agent_id-$competition-64gb-6hrs-125steps-0108},{Key=Competition,Value=$competition},{Key=AgentId,Value=$agent_id}]"
     done
 done
 

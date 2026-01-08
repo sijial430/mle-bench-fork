@@ -155,16 +155,16 @@ echo "Logging into ECR..."
 aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
 # Pull ML-Master image from Docker Hub
-echo "Pulling ML-Master Docker image..."
+echo "Pulling ml-master Docker image..."
 sudo docker pull sjtuagents/ml-master:latest
 
 # Also pull mlebench-env for building if needed
-sudo docker pull $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
+# sudo docker pull $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
 
 # Tag images with expected names
 echo "Tagging images..."
-sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest mlebench-env:latest
-sudo docker tag sjtuagents/ml-master:latest ML-Master:latest
+# sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest mlebench-env:latest
+sudo docker tag sjtuagents/ml-master:latest mlebench-mlmaster:latest
 
 # ==========================================
 # BUILD ML-MASTER IMAGE (if using custom Dockerfile)

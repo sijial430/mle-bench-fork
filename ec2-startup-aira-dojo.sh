@@ -20,8 +20,6 @@ sleep 10
 AWS_REGION="us-east-1"
 S3_DATA_BUCKET="mlebench-data"
 S3_RESULTS_BUCKET="mlebench-results"
-# COMPETITION_ID="${1:-spaceship-titanic}" #tensorflow2-question-answering
-# AGENT_ID="${2:-aide/dev}"
 
 # ==========================================
 # INSTANCE TAGS (IMDSv2) - COMPETITION_ID / AGENT_ID
@@ -45,9 +43,9 @@ COMPETITION_ID="$(get_tag Competition)"
 AGENT_ID="$(get_tag AgentId)"
 
 : "${COMPETITION_ID:=spaceship-titanic}"
-: "${AGENT_ID:=aide/dev}"
+: "${AGENT_ID:=aira-dojo/greedy}"
 
-MLEBENCH_REPO="https://github.com/sijial430/mle-agent.git"  # Change to your repo if forked
+MLEBENCH_REPO="https://github.com/sijial430/mle-agent.git"
 API_KEY_SECRET_NAME="sijial_oai_key"
 
 echo "Competition: $COMPETITION_ID"
@@ -81,7 +79,7 @@ if ! command -v sysbox-runc &> /dev/null; then
     sudo apt-get install -y jq
     sudo apt-get install -y /tmp/sysbox.deb
     rm /tmp/sysbox.deb
-    
+
     # Restart Docker to register sysbox runtime
     sudo systemctl restart docker
 else
@@ -136,11 +134,11 @@ if [ ! -d "/home/ubuntu/mle-agent" ]; then
     cd /home/ubuntu
     sudo -u ubuntu git clone $MLEBENCH_REPO
     cd /home/ubuntu/mle-agent
-    
+
     # Pull LFS files (leaderboards, CSVs, top solutions)
     echo "Pulling Git LFS files..."
     git lfs pull
-    
+
     # Create virtual environment and install mle-agent
     echo "Creating virtual environment..."
     python3 -m venv /home/ubuntu/mle-agent/.venv
@@ -187,88 +185,44 @@ sudo usermod -aG docker ubuntu || true
 
 # Login to ECR
 echo "Logging into ECR..."
-# aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-# Pull images from ECR
-echo "Pulling Docker images..."
-# sudo docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
-# sudo docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest
+# Pull base mlebench-env image from ECR
+echo "Pulling base mlebench-env image..."
 sudo docker pull $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
-sudo docker pull $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest
-
-# Build the base environment image
-# sudo docker build --build-arg INSTALL_HEAVY_DEPENDENCIES=false -t mlebench-env -f environment/Dockerfile .
-
-# Tag and push to ECR
-# sudo docker tag mlebench-env:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
-# sudo docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
-
-# Build the aide agent
-# export SUBMISSION_DIR=/home/submission
-# export LOGS_DIR=/home/logs
-# export CODE_DIR=/home/code
-# export AGENT_DIR=/home/agent
-
-# sudo docker build --platform=linux/amd64 \
-#   --build-arg BASE_IMAGE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest \
-#   -t aide agents/aide/ \
-#   --build-arg SUBMISSION_DIR=$SUBMISSION_DIR \
-#   --build-arg LOGS_DIR=$LOGS_DIR \
-#   --build-arg CODE_DIR=$CODE_DIR \
-#   --build-arg AGENT_DIR=$AGENT_DIR
-
-# Tag and push aide agent
-# sudo docker tag aide:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest
-# sudo docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest
-
-# Tag with local names (so run_agent.py finds them)
-echo "Tagging images..."
-# sudo docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest mlebench-env:latest
-# sudo docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest aide:latest
 sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest mlebench-env:latest
-sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest aide:latest
 
 # ==========================================
-# PATCH AIDE FOR GPT-4.1/GPT-5 TEMPERATURE SUPPORT
+# BUILD aira-dojo AGENT IMAGE
 # ==========================================
-echo "Patching AIDE package for GPT-4.1/GPT-5 temperature support..."
+echo "Building aira-dojo agent image..."
 
-# Create and start a temporary container to apply patches (keeps it running with tail -f)
-TEMP_CONTAINER=$(sudo docker run -d aide:latest tail -f /dev/null)
-echo "Created temporary container: $TEMP_CONTAINER"
+export SUBMISSION_DIR=/home/submission
+export LOGS_DIR=/home/logs
+export CODE_DIR=/home/code
+export AGENT_DIR=/home/agent
 
-# Patch 1: Fix backend_openai.py to remove temperature for gpt-4.1 and gpt-5 models
-echo "Applying patch 1: Fix GPT-4.1/GPT-5 model detection in backend_openai.py..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'sed -i "s/re\.match(r\"\^o\\\\d\", filtered_kwargs\[\"model\"\])/re.match(r\"\^(o\\\\d|gpt-[45])\", filtered_kwargs[\"model\"])/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/backend/backend_openai.py'
+# Build the aira-dojo agent image
+# Note: The Dockerfile is in agents/ and expects aira-dojo/ subdirectory
+cd /home/ubuntu/mle-agent/agents
+sudo docker build --platform=linux/amd64 \
+  --build-arg BASE_IMAGE=mlebench-env:latest \
+  -t aira-dojo \
+  -f aira-dojo/Dockerfile . \
+  --build-arg SUBMISSION_DIR=$SUBMISSION_DIR \
+  --build-arg LOGS_DIR=$LOGS_DIR \
+  --build-arg CODE_DIR=$CODE_DIR \
+  --build-arg AGENT_DIR=$AGENT_DIR
 
-# Patch 2: Change default temperature from 0.5 to 1.0 in config.yaml
-echo "Applying patch 2: Update default temperature in config.yaml..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'sed -i "/^  code:/,/^  feedback:/ s/temp: 0\.5/temp: 1.0/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml && \
-  sed -i "/^  feedback:/,/^  search:/ s/temp: 0\.5/temp: 1.0/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml'
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to build aira-dojo image"
+    exit 1
+fi
 
-# Verify patches were applied
-echo "Verifying patches..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'grep -n "gpt-\[45\]" /opt/conda/envs/agent/lib/python*/site-packages/aide/backend/backend_openai.py || echo "WARNING: Patch 1 verification failed"'
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'grep -n "temp: 1.0" /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml || echo "WARNING: Patch 2 verification failed"'
+echo "aira-dojo image built successfully"
 
-# Commit the patched container as the new image
-echo "Committing patched container..."
-sudo docker commit $TEMP_CONTAINER aide:latest
-
-# Stop and remove the temporary container
-echo "Cleaning up temporary container..."
-sudo docker stop $TEMP_CONTAINER
-sudo docker rm $TEMP_CONTAINER
-
-echo "AIDE patches applied successfully!"
+# Return to mlebench directory
+cd /home/ubuntu/mle-agent
 
 # ==========================================
 # RUN THE AGENT
@@ -276,12 +230,9 @@ echo "AIDE patches applied successfully!"
 # Create competition file
 echo "$COMPETITION_ID" > /tmp/competition.txt
 
-
 NUM_CPUS=$(nproc)
 echo "Detected $NUM_CPUS CPUs"
 
-##### Doing this for now as I am pulling direclty from public repo
-## Note: I am using t2.micro for test runs
 cat > /tmp/container_config.json << EOF
 {
     "mem_limit": "64g",
@@ -290,7 +241,6 @@ cat > /tmp/container_config.json << EOF
     "runtime": "sysbox-runc"
 }
 EOF
-#####
 
 echo "Container config:"
 cat /tmp/container_config.json
@@ -322,7 +272,6 @@ python run_agent.py \
     --competition-set /tmp/competition.txt \
     --data-dir /data \
     --container-config /tmp/container_config.json
-    # --container-config /home/ubuntu/mle-agent/environment/config/container_configs/small.json
 
 # ==========================================
 # UPLOAD RESULTS TO S3

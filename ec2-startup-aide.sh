@@ -20,33 +20,8 @@ sleep 10
 AWS_REGION="us-east-1"
 S3_DATA_BUCKET="mlebench-data"
 S3_RESULTS_BUCKET="mlebench-results"
-# COMPETITION_ID="${1:-spaceship-titanic}" #tensorflow2-question-answering
-# AGENT_ID="${2:-aide/dev}"
-
-# ==========================================
-# INSTANCE TAGS (IMDSv2) - COMPETITION_ID / AGENT_ID
-# ==========================================
-IMDS_BASE="http://169.254.169.254/latest"
-IMDS_TOKEN="$(curl -fsS -X PUT "$IMDS_BASE/api/token" \
-  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)"
-
-imds_get() {
-  local path="$1"
-  curl -fsS -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" "$IMDS_BASE/$path"
-}
-
-get_tag() {
-  local key="$1"
-  imds_get "meta-data/tags/instance/${key}" 2>/dev/null || true
-}
-
-# Defaults if tags are missing / metadata tags not enabled
-COMPETITION_ID="$(get_tag Competition)"
-AGENT_ID="$(get_tag AgentId)"
-
-: "${COMPETITION_ID:=spaceship-titanic}"
-: "${AGENT_ID:=aide/dev}"
-
+COMPETITION_ID="spaceship-titanic"
+AGENT_ID="aide"
 MLEBENCH_REPO="https://github.com/sijial430/mle-agent.git"  # Change to your repo if forked
 API_KEY_SECRET_NAME="sijial_oai_key"
 
@@ -230,47 +205,6 @@ sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-en
 sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest aide:latest
 
 # ==========================================
-# PATCH AIDE FOR GPT-4.1/GPT-5 TEMPERATURE SUPPORT
-# ==========================================
-echo "Patching AIDE package for GPT-4.1/GPT-5 temperature support..."
-
-# Create and start a temporary container to apply patches (keeps it running with tail -f)
-TEMP_CONTAINER=$(sudo docker run -d aide:latest tail -f /dev/null)
-echo "Created temporary container: $TEMP_CONTAINER"
-
-# Patch 1: Fix backend_openai.py to remove temperature for gpt-4.1 and gpt-5 models
-echo "Applying patch 1: Fix GPT-4.1/GPT-5 model detection in backend_openai.py..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'sed -i "s/re\.match(r\"\^o\\\\d\", filtered_kwargs\[\"model\"\])/re.match(r\"\^(o\\\\d|gpt-[45])\", filtered_kwargs[\"model\"])/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/backend/backend_openai.py'
-
-# Patch 2: Change default temperature from 0.5 to 1.0 in config.yaml
-echo "Applying patch 2: Update default temperature in config.yaml..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'sed -i "/^  code:/,/^  feedback:/ s/temp: 0\.5/temp: 1.0/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml && \
-  sed -i "/^  feedback:/,/^  search:/ s/temp: 0\.5/temp: 1.0/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml'
-
-# Verify patches were applied
-echo "Verifying patches..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'grep -n "gpt-\[45\]" /opt/conda/envs/agent/lib/python*/site-packages/aide/backend/backend_openai.py || echo "WARNING: Patch 1 verification failed"'
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'grep -n "temp: 1.0" /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml || echo "WARNING: Patch 2 verification failed"'
-
-# Commit the patched container as the new image
-echo "Committing patched container..."
-sudo docker commit $TEMP_CONTAINER aide:latest
-
-# Stop and remove the temporary container
-echo "Cleaning up temporary container..."
-sudo docker stop $TEMP_CONTAINER
-sudo docker rm $TEMP_CONTAINER
-
-echo "AIDE patches applied successfully!"
-
-# ==========================================
 # RUN THE AGENT
 # ==========================================
 # Create competition file
@@ -284,8 +218,8 @@ echo "Detected $NUM_CPUS CPUs"
 ## Note: I am using t2.micro for test runs
 cat > /tmp/container_config.json << EOF
 {
-    "mem_limit": "64g",
-    "shm_size": "64g",
+    "mem_limit": "50g",
+    "shm_size": "50g",
     "nano_cpus": ${NUM_CPUS}e9,
     "runtime": "sysbox-runc"
 }

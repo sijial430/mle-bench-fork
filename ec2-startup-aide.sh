@@ -22,7 +22,7 @@ S3_DATA_BUCKET="mlebench-data"
 S3_RESULTS_BUCKET="mlebench-results"
 COMPETITION_ID="spaceship-titanic"
 AGENT_ID="aide"
-MLEBENCH_REPO="https://github.com/sijial430/mle-agent.git"  # Change to your repo if forked
+MLEBENCH_REPO="https://github.com/sijial430/mle-bench-fork.git"  # Change to your repo if forked
 API_KEY_SECRET_NAME="sijial_oai_key"
 
 echo "Competition: $COMPETITION_ID"
@@ -105,30 +105,30 @@ echo "Shared Account ID: $SHARED_ACCOUNT_ID"
 # ==========================================
 # CLONE AND SETUP MLE-BENCH
 # ==========================================
-echo "Setting up mle-agent..."
-if [ ! -d "/home/ubuntu/mle-agent" ]; then
-    echo "Cloning mle-agent repository..."
+echo "Setting up mle-bench-fork..."
+if [ ! -d "/home/ubuntu/mle-bench-fork" ]; then
+    echo "Cloning mle-bench-fork repository..."
     cd /home/ubuntu
     sudo -u ubuntu git clone $MLEBENCH_REPO
-    cd /home/ubuntu/mle-agent
+    cd /home/ubuntu/mle-bench-fork
     
     # Pull LFS files (leaderboards, CSVs, top solutions)
     echo "Pulling Git LFS files..."
     git lfs pull
     
-    # Create virtual environment and install mle-agent
+    # Create virtual environment and install mle-bench-fork
     echo "Creating virtual environment..."
-    python3 -m venv /home/ubuntu/mle-agent/.venv
-    source /home/ubuntu/mle-agent/.venv/bin/activate
+    python3 -m venv /home/ubuntu/mle-bench-fork/.venv
+    source /home/ubuntu/mle-bench-fork/.venv/bin/activate
     pip install --upgrade pip
     pip install -e .
 else
-    echo "mle-agent already exists"
-    cd /home/ubuntu/mle-agent
+    echo "mle-bench-fork already exists"
+    cd /home/ubuntu/mle-bench-fork
     # Make sure LFS files are up to date
     git lfs pull
     # Activate existing venv
-    source /home/ubuntu/mle-agent/.venv/bin/activate
+    source /home/ubuntu/mle-bench-fork/.venv/bin/activate
 fi
 
 # ==========================================
@@ -148,10 +148,10 @@ fi
 echo "Competition data downloaded successfully"
 
 # Navigate to mlebench directory
-cd /home/ubuntu/mle-agent
+cd /home/ubuntu/mle-bench-fork
 
 # Ensure venv is activated
-source /home/ubuntu/mle-agent/.venv/bin/activate
+source /home/ubuntu/mle-bench-fork/.venv/bin/activate
 
 # ==========================================
 # SETUP DOCKER
@@ -256,7 +256,7 @@ python run_agent.py \
     --competition-set /tmp/competition.txt \
     --data-dir /data \
     --container-config /tmp/container_config.json
-    # --container-config /home/ubuntu/mle-agent/environment/config/container_configs/small.json
+    # --container-config /home/ubuntu/mle-bench-fork/environment/config/container_configs/small.json
 
 # ==========================================
 # UPLOAD RESULTS TO S3

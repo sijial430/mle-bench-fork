@@ -19,7 +19,7 @@ ENV AGENT_DIR=${AGENT_DIR}
 
 RUN mkdir -p ${LOGS_DIR} ${CODE_DIR} ${AGENT_DIR}
 
-ARG CONDA_ENV_NAME=agent
+ARG CONDA_ENV_NAME=ml-master
 ARG REQUIREMENTS=${AGENT_DIR}/requirements.txt
 
 # Copy just the requirements file first for caching
@@ -33,8 +33,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies in conda environment
-RUN conda run -n ${CONDA_ENV_NAME} pip install -r ${AGENT_DIR}/requirements.txt && \
+# Create conda environment if it doesn't exist, then install dependencies
+RUN if ! conda env list | grep -q "^${CONDA_ENV_NAME} "; then \
+        conda create -n ${CONDA_ENV_NAME} python=3.10 -y; \
+    fi && \
+    conda run -n ${CONDA_ENV_NAME} pip install -r ${AGENT_DIR}/requirements.txt && \
     conda clean -afy
 
 # Put all the agent files in the expected location

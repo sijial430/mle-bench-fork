@@ -4,7 +4,15 @@ set -x  # Print commands and their arguments as they are executed
 cd ${AGENT_DIR}
 
 eval "$(conda shell.bash hook)"  # make conda available to the shell
-conda activate agent
+
+# Try to activate 'ml-master' environment, fall back to 'base' if it doesn't exist
+if conda env list | grep -q "^ml-master "; then
+  conda activate ml-master
+  echo "Activated conda environment: ml-master"
+else
+  echo "Conda environment 'ml-master' not found, using base environment"
+  conda activate base
+fi
 
 # Start ML-Master grading server in background (for check_format feature)
 echo "Starting grading server on port 5001..."

@@ -43,9 +43,65 @@ def save_output(container: Container, save_dir: Path, container_config: dict) ->
     return save_dir
 
 
+def startup_heartbeat(container: Container, agent: Agent, logger: logging.Logger, timeout: int = 30) -> bool:
+    """
+    Performs startup heartbeat checks to detect silent failures early.
+
+    This runs a series of quick validation commands to ensure the container
+    environment is properly set up before the main agent execution.
+
+    Args:
+        container: The Docker/Apptainer container.
+        agent: The agent being executed.
+        logger: Logger for the run.
+        timeout: Timeout in seconds for each check.
+
+    Returns:
+        True if all checks pass, False otherwise.
+    """
+    logger.info("[HEARTBEAT] Starting container validation checks...")
+
+    checks = [
+        # Basic shell responsiveness
+        ("echo 'HEARTBEAT: Container responsive'", "Container responsive"),
+        # Check agent directory exists
+        (f"test -d {CONSTANTS['AGENT_DIR']} && echo 'HEARTBEAT: Agent directory exists'", "Agent directory"),
+        # Check start script exists
+        (f"test -f {CONSTANTS['AGENT_DIR']}/start.sh && echo 'HEARTBEAT: Start script exists'", "Start script"),
+        # Check data directory is mounted
+        ("test -d /home/data && echo 'HEARTBEAT: Data directory mounted'", "Data directory"),
+    ]
+
+    all_passed = True
+    for cmd, check_name in checks:
+        try:
+            exit_code, output = container.exec_run(
+                f"timeout {timeout}s bash -c \"{cmd}\"",
+                user="nonroot"
+            )
+            output_str = output.decode('utf-8').strip() if output else ""
+
+            if exit_code == 0 and "HEARTBEAT:" in output_str:
+                logger.info(f"[HEARTBEAT] OK: {check_name}")
+            else:
+                logger.warning(f"[HEARTBEAT] FAILED: {check_name} (exit={exit_code}, output={output_str})")
+                all_passed = False
+        except Exception as e:
+            logger.error(f"[HEARTBEAT] ERROR: {check_name} - {str(e)}")
+            all_passed = False
+
+    if all_passed:
+        logger.info("[HEARTBEAT] All startup checks passed")
+    else:
+        logger.warning("[HEARTBEAT] Some startup checks failed - agent may encounter issues")
+
+    return all_passed
+
+
 def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
     """
     Initiates the agent via its start script inside the container.
+    Captures both stdout and stderr to prevent silent failures.
     """
     cmd = ["bash", f"{CONSTANTS['AGENT_DIR']}/start.sh"]
 
@@ -56,11 +112,35 @@ def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
     if agent.kwargs_type == "omegaconf":
         cmd += [f"{key}={value}" for key, value in agent.kwargs.items()]
 
-    logger.info("Running agent...")
-    exit_code, output = container.exec_run(cmd, stream=True, user="nonroot")
+    logger.info("[HEARTBEAT] Agent execution starting...")
+    logger.info(f"[HEARTBEAT] Command: {' '.join(cmd)}")
+
+    # Execute with both stdout and stderr captured (demux=False merges them)
+    # stream=True allows us to see output in real-time
+    exit_code, output = container.exec_run(
+        cmd,
+        stream=True,
+        user="nonroot",
+        demux=False,  # Merge stdout and stderr into single stream
+    )
+
+    # Track if we received any output (silence detection)
+    output_received = False
+    last_output_time = time.monotonic()
 
     for chunk in output:
-        logger.info(f"[Container] {chunk.decode('utf-8').strip()}")
+        output_received = True
+        last_output_time = time.monotonic()
+        decoded = chunk.decode('utf-8').strip()
+        if decoded:
+            logger.info(f"[Container] {decoded}")
+
+    # Log completion status
+    elapsed_since_output = time.monotonic() - last_output_time
+    if not output_received:
+        logger.warning("[HEARTBEAT] WARNING: No output received from agent - possible silent failure")
+
+    logger.info(f"[HEARTBEAT] Agent execution finished (exit_code={exit_code})")
 
 
 def clean_up(container: Container, logger: logging.Logger, retain: bool = False) -> bool:
@@ -172,9 +252,13 @@ def run_in_container(
              if not hasattr(container, "status") or container.status != "created":
                  pass # Assume it's running or doesn't support start
         
+        # Perform startup heartbeat checks to detect silent failures early
+        startup_heartbeat(container, agent, logger)
+
         # Skip grading server check for agents that have their own validation (e.g., aira-dojo)
         skip_grading_server = agent.id.startswith("aira-dojo")
         if not skip_grading_server:
+            logger.info("[HEARTBEAT] Waiting for grading server...")
             exit_code, _ = container.exec_run(
                 'timeout 60s sh -c "while ! curl -s http://localhost:5000/health > /dev/null; do sleep 1; done"'
             )
@@ -182,8 +266,10 @@ def run_in_container(
                 raise RuntimeError(
                     "The grading server failed to start within 60 seconds. This is likely due to an error in `entrypoint.sh`; check the logs."
                 )
+            logger.info("[HEARTBEAT] Grading server is ready")
         else:
-            logger.info("Skipping grading server check for aira-dojo agent")
+            logger.info("[HEARTBEAT] Skipping grading server check for aira-dojo agent")
+
         execute_agent(container, agent, logger)
         save_output(container, run_dir, container_config)
         time_end = time.monotonic()

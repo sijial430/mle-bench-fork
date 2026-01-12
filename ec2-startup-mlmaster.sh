@@ -24,7 +24,6 @@ COMPETITION_ID="spaceship-titanic"
 AGENT_ID="ml-master"
 MLEBENCH_REPO="https://github.com/sijial430/mle-bench-fork.git"
 API_KEY_SECRET_NAME="sijial_oai_key"
-DEEPSEEK_KEY_SECRET_NAME="deepseek_api_key"  # Optional: for DeepSeek models
 
 echo "Competition: $COMPETITION_ID"
 echo "Agent: $AGENT_ID"
@@ -92,13 +91,13 @@ fi
 # ==========================================
 echo "Getting AWS Account ID..."
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region $AWS_REGION)
-SHARED_ACCOUNT_ID="574455268872"
+# SHARED_ACCOUNT_ID="574455268872"
 if [ -z "$AWS_ACCOUNT_ID" ]; then
     echo "ERROR: Could not get AWS Account ID. Check IAM role!"
     exit 1
 fi
 echo "AWS Account ID: $AWS_ACCOUNT_ID"
-echo "Shared Account ID: $SHARED_ACCOUNT_ID"
+# echo "Shared Account ID: $SHARED_ACCOUNT_ID"
 
 # ==========================================
 # CLONE AND SETUP MLE-BENCH
@@ -152,36 +151,15 @@ sudo usermod -aG docker ubuntu || true
 
 # Login to ECR
 echo "Logging into ECR..."
-aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-# Pull ML-Master image from Docker Hub
-echo "Pulling ml-master Docker image..."
-sudo docker pull sjtuagents/ml-master:latest
+# Pull Docker images from ECR
+echo "Pulling Docker images from ECR..."
+sudo docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-mlmaster:latest
 
-# Also pull mlebench-env for building if needed
-# sudo docker pull $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
-
-# Tag images with expected names
+# Tag with local names (so run_agent.py finds them)
 echo "Tagging images..."
-# sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest mlebench-env:latest
-sudo docker tag sjtuagents/ml-master:latest mlmaster:latest
-
-# ==========================================
-# BUILD ML-MASTER IMAGE (if using custom Dockerfile)
-# ==========================================
-# Uncomment below if you want to build from Dockerfile instead of using pre-built image
-# export SUBMISSION_DIR=/home/submission
-# export LOGS_DIR=/home/logs
-# export CODE_DIR=/home/code
-# export AGENT_DIR=/home/agent
-#
-# sudo docker build --platform=linux/amd64 \
-#   --build-arg BASE_IMAGE=mlebench-env:latest \
-#   -t ML-Master agents/ML-Master/ \
-#   --build-arg SUBMISSION_DIR=$SUBMISSION_DIR \
-#   --build-arg LOGS_DIR=$LOGS_DIR \
-#   --build-arg CODE_DIR=$CODE_DIR \
-#   --build-arg AGENT_DIR=$AGENT_DIR
+sudo docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-mlmaster:latest mlmaster:latest
 
 # ==========================================
 # RUN THE AGENT
@@ -221,19 +199,6 @@ if [ $? -eq 0 ]; then
     echo "Successfully loaded OPENAI_API_KEY"
 else
     echo "WARNING: Failed to fetch OPENAI_API_KEY from Secrets Manager"
-fi
-
-# Fetch DeepSeek API Key (optional)
-DEEPSEEK_SECRET=$(aws secretsmanager get-secret-value --secret-id $DEEPSEEK_KEY_SECRET_NAME --query SecretString --output text --region $AWS_REGION 2>/dev/null)
-if [ $? -eq 0 ]; then
-    if echo "$DEEPSEEK_SECRET" | jq -e .DEEPSEEK_API_KEY >/dev/null 2>&1; then
-        export DEEPSEEK_API_KEY=$(echo "$DEEPSEEK_SECRET" | jq -r .DEEPSEEK_API_KEY)
-    else
-        export DEEPSEEK_API_KEY="$DEEPSEEK_SECRET"
-    fi
-    echo "Successfully loaded DEEPSEEK_API_KEY"
-else
-    echo "INFO: DEEPSEEK_API_KEY not found, will use default model configuration"
 fi
 
 echo "Running ML-Master agent..."

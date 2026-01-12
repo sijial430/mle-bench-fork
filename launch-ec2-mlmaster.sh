@@ -16,7 +16,7 @@ for competition in "spaceship-titanic" \
             --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":true,"EnableResourceNameDnsAAAARecord":false}' \
             --count '1' \
             --user-data file://ec2-startup-mlmaster.sh \
-            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$agent_id-$competition-64gb-dev-0107},{Key=Competition,Value=$competition},{Key=AgentId,Value=$agent_id}]"
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$agent_id-$competition-64gb-dev-0108},{Key=Competition,Value=$competition},{Key=AgentId,Value=$agent_id}]"
     done
 done
 

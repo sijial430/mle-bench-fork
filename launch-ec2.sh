@@ -16,8 +16,10 @@
 # "siim-covid19-detection" \ # 180GB data
 # "icecube-neutrinos-in-deep-ice" \ # 180GB data
 
+# for competition in "tensorflow2-question-answering" \
+#   "new-york-city-taxi-fare-prediction" \
+#   "smartphone-decimeter-2022" \
 for competition in "tensorflow2-question-answering" \
-  "new-york-city-taxi-fare-prediction" \
   "smartphone-decimeter-2022" \
 ; do
     for agent_id in "aide"; do

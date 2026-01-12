@@ -6,6 +6,25 @@ cd ${AGENT_DIR}
 eval "$(conda shell.bash hook)"  # make conda available to the shell
 conda activate agent
 
+# Start ML-Master grading server in background (for check_format feature)
+echo "Starting grading server on port 5001..."
+nohup python grading_server.py \
+  dataset_dir="/home/data/" \
+  data_dir="/home/data/" \
+  desc_file="none" > /tmp/grading_server.log 2>&1 &
+GRADING_SERVER_PID=$!
+echo "Grading server started with PID: $GRADING_SERVER_PID"
+
+# Wait for grading server to be ready
+for i in {1..10}; do
+  if curl -s http://localhost:5001/health > /dev/null 2>&1; then
+    echo "Grading server is ready"
+    break
+  fi
+  echo "Waiting for grading server... ($i/10)"
+  sleep 1
+done
+
 # determine hardware available
 if command -v nvidia-smi &> /dev/null && nvidia-smi --query-gpu=name --format=csv,noheader &> /dev/null; then
   HARDWARE=$(nvidia-smi --query-gpu=name --format=csv,noheader \
@@ -80,21 +99,21 @@ START_CPU=0
 END_CPU=$((NUM_CPUS - 1))
 
 # Set up API keys from environment
-# For OpenAI-compatible APIs
 if [ -n "$OPENAI_API_KEY" ]; then
   export OPENAI_API_KEY
 fi
-if [ -n "$DEEPSEEK_API_KEY" ]; then
-  export DEEPSEEK_API_KEY
-fi
-if [ -n "$ANTHROPIC_API_KEY" ]; then
-  export ANTHROPIC_API_KEY
-fi
 
-# Determine base URLs based on model (can be overridden via kwargs)
-# Default to OpenAI for GPT models
+# Default base URLs (can be overridden by config.yaml kwargs)
+# - GPT-5.1: uses OpenAI API
+# - Qwen: uses local VLLM (base_url set in config.yaml)
 CODE_BASE_URL=${CODE_BASE_URL:-"https://api.openai.com/v1"}
 FEEDBACK_BASE_URL=${FEEDBACK_BASE_URL:-"https://api.openai.com/v1"}
+
+# API keys
+# - Code model: OpenAI for GPT, dummy for VLLM (Qwen)
+# - Feedback model: Always OpenAI (gpt-5.1-mini)
+CODE_API_KEY="${OPENAI_API_KEY:-dummy-key}"
+FEEDBACK_API_KEY="$OPENAI_API_KEY"
 
 # Run ML-Master with timeout
 timeout $TIME_LIMIT_SECS python main_mcts.py \
@@ -106,8 +125,8 @@ timeout $TIME_LIMIT_SECS python main_mcts.py \
   workspace_dir="${AGENT_DIR}/workspaces" \
   start_cpu_id="${START_CPU}" \
   cpu_number="${NUM_CPUS}" \
-  agent.code.api_key="${OPENAI_API_KEY:-${DEEPSEEK_API_KEY:-${ANTHROPIC_API_KEY:-}}}" \
-  agent.feedback.api_key="${OPENAI_API_KEY}" \
+  agent.code.api_key="${CODE_API_KEY}" \
+  agent.feedback.api_key="${FEEDBACK_API_KEY}" \
   agent.code.base_url="${CODE_BASE_URL}" \
   agent.feedback.base_url="${FEEDBACK_BASE_URL}" \
   $@  # forward the bash arguments to main_mcts.py

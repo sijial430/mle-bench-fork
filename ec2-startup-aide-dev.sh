@@ -47,7 +47,7 @@ AGENT_ID="$(get_tag AgentId)"
 : "${COMPETITION_ID:=spaceship-titanic}"
 : "${AGENT_ID:=aide/dev}"
 
-MLEBENCH_REPO="https://github.com/sijial430/mle-agent.git"  # Change to your repo if forked
+MLEBENCH_REPO="https://github.com/sijial430/mle-bench-fork.git"  # Change to your repo if forked
 API_KEY_SECRET_NAME="sijial_oai_key"
 
 echo "Competition: $COMPETITION_ID"

@@ -72,12 +72,15 @@ def startup_heartbeat(container: Container, agent: Agent, logger: logging.Logger
         ("test -d /home/data && echo 'HEARTBEAT: Data directory mounted'", "Data directory"),
     ]
 
+    # Some agents (e.g., ml-master) don't have nonroot user in their image
+    exec_user = None if agent.id.startswith("ml-master") else "nonroot"
+
     all_passed = True
     for cmd, check_name in checks:
         try:
             exit_code, output = container.exec_run(
                 f"timeout {timeout}s bash -c \"{cmd}\"",
-                user="nonroot"
+                user=exec_user
             )
             output_str = output.decode('utf-8').strip() if output else ""
 
@@ -115,12 +118,15 @@ def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
     logger.info("[HEARTBEAT] Agent execution starting...")
     logger.info(f"[HEARTBEAT] Command: {' '.join(cmd)}")
 
+    # Some agents (e.g., ml-master) don't have nonroot user in their image
+    exec_user = None if agent.id.startswith("ml-master") else "nonroot"
+
     # Execute with both stdout and stderr captured (demux=False merges them)
     # stream=True allows us to see output in real-time
     exit_code, output = container.exec_run(
         cmd,
         stream=True,
-        user="nonroot",
+        user=exec_user,
         demux=False,  # Merge stdout and stderr into single stream
     )
 
@@ -255,8 +261,10 @@ def run_in_container(
         # Perform startup heartbeat checks to detect silent failures early
         startup_heartbeat(container, agent, logger)
 
-        # Skip grading server check for agents that have their own validation (e.g., aira-dojo)
-        skip_grading_server = agent.id.startswith("aira-dojo")
+        # Skip grading server check for agents that have their own validation
+        # - aira-dojo: has its own validation
+        # - ml-master: has its own grading server on port 5001 (started by start.sh)
+        skip_grading_server = agent.id.startswith("aira-dojo") or agent.id.startswith("ml-master")
         if not skip_grading_server:
             logger.info("[HEARTBEAT] Waiting for grading server...")
             exit_code, _ = container.exec_run(
@@ -268,7 +276,7 @@ def run_in_container(
                 )
             logger.info("[HEARTBEAT] Grading server is ready")
         else:
-            logger.info("[HEARTBEAT] Skipping grading server check for aira-dojo agent")
+            logger.info(f"[HEARTBEAT] Skipping grading server check for {agent.id} agent")
 
         execute_agent(container, agent, logger)
         save_output(container, run_dir, container_config)

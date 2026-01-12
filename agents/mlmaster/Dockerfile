@@ -1,6 +1,9 @@
 ARG BASE_IMAGE=mlebench-env
 FROM ${BASE_IMAGE}
 
+# Ensure nonroot user exists (required by run.py)
+RUN id nonroot 2>/dev/null || useradd -m nonroot
+
 # where to put submission.csv, will be extracted
 ARG SUBMISSION_DIR
 ENV SUBMISSION_DIR=${SUBMISSION_DIR}

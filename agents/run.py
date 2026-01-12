@@ -208,7 +208,7 @@ def run_in_container(
         },
         agent_dir: {
             "bind": "/home/agent",
-            "mode": "ro",
+            "mode": "rw",
         },
     }
 

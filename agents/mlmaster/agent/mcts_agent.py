@@ -397,15 +397,21 @@ The memory of previous solutions used to improve performance is provided below:
         """Generate a natural language plan + code in the same LLM call and split them apart."""
         completion_text = None
         for _ in range(retries):
-            if "gpt-5" in self.acfg.code.model:
-                completion_text = gpt_query(
+            # Use r1_query only for reasoning models (deepseek, qwen) with steerable_reasoning enabled
+            # Use gpt_query for all other models (gpt-5, gpt-4, claude, o1, o3, etc.)
+            use_reasoning_query = (
+                self.acfg.steerable_reasoning and
+                any(rm in self.acfg.code.model.lower() for rm in ["deepseek", "qwen"])
+            )
+            if use_reasoning_query:
+                completion_text = r1_query(
                     prompt = prompt,
                     temperature=self.acfg.code.temp,
                     model=self.acfg.code.model,
                     cfg=self.cfg
                 )
             else:
-                completion_text = r1_query(
+                completion_text = gpt_query(
                     prompt = prompt,
                     temperature=self.acfg.code.temp,
                     model=self.acfg.code.model,
@@ -592,11 +598,23 @@ The memory of previous solutions used to improve performance is provided below:
             )
         except Exception as e:
             logger.info("parse without tool fail, try one more time.")
-            completion_text = r1_query(
-                prompt=prompt,
-                temperature=self.acfg.code.temp,
-                cfg=self.cfg
+            # Use r1_query only for reasoning models, gpt_query for others
+            use_reasoning_query = (
+                self.acfg.steerable_reasoning and
+                any(rm in self.acfg.feedback.model.lower() for rm in ["deepseek", "qwen"])
             )
+            if use_reasoning_query:
+                completion_text = r1_query(
+                    prompt=prompt,
+                    temperature=self.acfg.feedback.temp,
+                    cfg=self.cfg
+                )
+            else:
+                completion_text = gpt_query(
+                    prompt=prompt,
+                    temperature=self.acfg.feedback.temp,
+                    cfg=self.cfg
+                )
         response = cast(
             dict,
             extract_review(completion_text)

@@ -119,8 +119,10 @@ def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
     logger.info(f"[HEARTBEAT] Command: {' '.join(cmd)}")
 
     # Some agents (e.g., ml-master) don't have nonroot user in their image
+    logger.info(f"[HEARTBEAT] Before exec_user OK")
     exec_user = None if agent.id.startswith("ml-master") else "nonroot"
-
+    logger.info(f"[HEARTBEAT] After exec_user OK, exec_user: {exec_user}")
+    
     # Execute with both stdout and stderr captured (demux=False merges them)
     # stream=True allows us to see output in real-time
     exit_code, output = container.exec_run(
@@ -129,7 +131,8 @@ def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
         user=exec_user,
         demux=False,  # Merge stdout and stderr into single stream
     )
-
+    logger.info(f"[HEARTBEAT] After exec_run OK, exit_code: {exit_code}, output: {output}")
+    
     # Track if we received any output (silence detection)
     output_received = False
     last_output_time = time.monotonic()

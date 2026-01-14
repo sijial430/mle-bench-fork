@@ -1,26 +1,24 @@
 #!/bin/bash
+# NOTE: This script is for LOCAL TESTING ONLY.
+# EC2 launches use ec2-startup-mlmaster.sh → run_agent.py → config.yaml
 set -x # Print commands and their arguments as they are executed
 
 AGENT_DIR=./
-EXP_ID=plant-pathology-2020-fgvc7
-dataset_dir=/path/to/mle-bench 
+EXP_ID=spaceship-titanic
+dataset_dir=/home/ubuntu/mle-bench-fork/mlebench
 MEMORY_INDEX=0
 
-code_model=deepseek-r1
-code_temp=0.5
-code_base_url="your_base_url"
-code_api_key="your_api_key"
-
-feedback_model=gpt-4o-2024-08-06
-feedback_temp=0.5
-feedback_base_url="your_base_url"
-feedback_api_key="your_api_key"
+# Model config - these are passed to main_mcts.py below
+code_model=gpt-5.1
+code_temp=1
+feedback_model=gpt-5-mini-2025-08-07
+feedback_temp=1
 
 start_cpu=0
 CPUS_PER_TASK=36
 end_cpu=$((start_cpu + CPUS_PER_TASK - 1))
 
-TIME_LIMIT_SECS=43200
+TIME_LIMIT_SECS=21600
 
 cd ${AGENT_DIR}
 export MEMORY_INDEX
@@ -32,7 +30,7 @@ format_time() {
   echo "${hours}hrs ${minutes}mins ${seconds}secs"
 }
 export TIME_LIMIT=$(format_time $TIME_LIMIT_SECS)
-export STEP_LIMIT=500
+export STEP_LIMIT=125
 
 mkdir -p ${AGENT_DIR}/logs
 
@@ -48,13 +46,9 @@ CUDA_VISIBLE_DEVICES=$MEMORY_INDEX taskset -c ${start_cpu}-${end_cpu} timeout $T
   cpu_number="${CPUS_PER_TASK}" \
   agent.code.model=$code_model \
   agent.code.temp=$code_temp \
-  agent.code.base_url=$code_base_url \
-  agent.code.api_key=$code_api_key \
   agent.feedback.model=$feedback_model \
   agent.feedback.temp=$feedback_temp \
-  agent.feedback.base_url=$feedback_base_url \
-  agent.feedback.api_key=$feedback_api_key
-  # agent.steerable_reasoning=false
+  agent.steerable_reasoning=false
 
 if [ $? -eq 124 ]; then
   echo "Timed out after $TIME_LIMIT"

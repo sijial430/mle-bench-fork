@@ -145,6 +145,8 @@ def create_competition_container(
         image=container_image,
         name=f"competition-{competition.id}-{timestamp}-{unique_id}",
         detach=True,
+        entrypoint="",  # Bypass NVIDIA entrypoint
+        command=["tail", "-f", "/dev/null"],  # Keep container alive
         **parse_container_config(container_config),
         volumes=volumes_config,
         environment=env_vars,

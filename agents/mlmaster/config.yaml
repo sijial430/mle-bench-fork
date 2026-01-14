@@ -16,6 +16,7 @@ kwargs_common: &kwargs_common
   agent.time_limit: *time_limit
   exec.timeout: 32400  # 9 hours limit per step
   copy_data: False  # use symbolic links
+  agent.steerable_reasoning: false
   agent.steps: *step_count
 
 # ==========================================
@@ -26,7 +27,9 @@ ml-master:
   kwargs:
     <<: *kwargs_common
     agent.code.model: gpt-5.1
-    agent.feedback.model: gpt-5.1-mini
+    agent.code.temp: 1  # gpt-5.1 only supports temperature=1
+    agent.feedback.model: gpt-5-mini-2025-08-07
+    agent.feedback.temp: 1  # gpt-5-mini only supports temperature=1
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise
@@ -43,7 +46,8 @@ ml-master/deepseek-r1:
     <<: *kwargs_common
     agent.code.model: deepseek-r1
     agent.code.temp: 0.5
-    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.model: gpt-5-mini-2025-08-07
+    agent.feedback.temp: 1  # gpt-5-mini only supports temperature=1
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise
@@ -61,7 +65,8 @@ ml-master/gpt-4o:
     <<: *kwargs_common
     agent.code.model: gpt-4o-2024-08-06
     agent.code.temp: 0.5
-    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.model: gpt-5-mini-2025-08-07
+    agent.feedback.temp: 1  # gpt-5-mini only supports temperature=1
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise
@@ -78,7 +83,8 @@ ml-master/claude-3-5-sonnet:
     <<: *kwargs_common
     agent.code.model: claude-3-5-sonnet-20240620
     agent.code.temp: 0.5
-    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.model: gpt-5-mini-2025-08-07
+    agent.feedback.temp: 1  # gpt-5-mini only supports temperature=1
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise
@@ -97,7 +103,8 @@ ml-master/qwen3-30b-a3b:
     agent.code.model: qwen3-30b-a3b
     agent.code.temp: 0.7
     agent.code.base_url: http://localhost:8000/v1
-    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.model: gpt-5-mini-2025-08-07
+    agent.feedback.temp: 1  # gpt-5-mini only supports temperature=1
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise
@@ -112,7 +119,8 @@ ml-master/qwen3-next:
     agent.code.model: qwen3-next
     agent.code.temp: 0.7
     agent.code.base_url: http://localhost:8000/v1
-    agent.feedback.model: gpt-5.1-mini
+    agent.feedback.model: gpt-5-mini-2025-08-07
+    agent.feedback.temp: 1  # gpt-5-mini only supports temperature=1
     agent.search.parallel_search_num: 3
     agent.search.num_drafts: 5
     agent.decay.decay_type: piecewise

@@ -181,6 +181,16 @@ EOF
 echo "Container config:"
 cat /tmp/container_config.json
 
+cat > /tmp/container_config_nosysbox.json << EOF
+{
+    "mem_limit": "50g",
+    "shm_size": "50g"
+}
+EOF
+
+echo "Container config (no sysbox):"
+cat /tmp/container_config_nosysbox.json
+
 # ==========================================
 # FETCH SECRETS
 # ==========================================
@@ -201,12 +211,18 @@ else
     echo "WARNING: Failed to fetch OPENAI_API_KEY from Secrets Manager"
 fi
 
+# remove cache to avoid permission issues
+echo "Cleaning up cache directory..."
+sudo rm -rf /home/ubuntu/mle-bench-fork/cache
+sudo rm -rf /home/ubuntu/mle-bench-fork/agents/mlmaster/workspaces
+sudo rm -rf /home/ubuntu/mle-bench-fork/agents/mlmaster/logs
+
 echo "Running ML-Master agent..."
 python run_agent.py \
     --agent-id $AGENT_ID \
     --competition-set /tmp/competition.txt \
     --data-dir /data \
-    --container-config /tmp/container_config.json
+    --container-config /tmp/container_config_nosysbox.json
 
 # ==========================================
 # UPLOAD RESULTS TO S3
@@ -220,4 +236,4 @@ echo "ML-Master run completed at $(date)"
 echo "=========================================="
 
 # Optional: shutdown instance when done
-sudo shutdown -h now
+# sudo shutdown -h now

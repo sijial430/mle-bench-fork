@@ -184,7 +184,7 @@ cat /tmp/container_config.json
 cat > /tmp/container_config_nosysbox.json << EOF
 {
     "mem_limit": "50g",
-    "shm_size": "50g",
+    "shm_size": "50g"
 }
 EOF
 

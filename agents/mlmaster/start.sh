@@ -137,6 +137,7 @@ timeout $TIME_LIMIT_SECS python main_mcts.py \
   agent.feedback.api_key="${FEEDBACK_API_KEY}" \
   agent.code.base_url="${CODE_BASE_URL}" \
   agent.feedback.base_url="${FEEDBACK_BASE_URL}" \
+  agent.steerable_reasoning=false \
   $@  # forward the bash arguments to main_mcts.py
 
 EXIT_CODE=$?

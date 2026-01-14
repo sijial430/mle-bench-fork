@@ -15,6 +15,9 @@ runs/*/metadata.json
 cache/
 # MLE-bench [END]
 
+# Credentials
+*.pem
+
 # MacOs
 .DS_Store
 

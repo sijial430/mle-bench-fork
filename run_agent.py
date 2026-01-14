@@ -103,6 +103,47 @@ async def main(args):
     registry = registry.set_data_dir(Path(args.data_dir))
 
     agent = agent_registry.get_agent(args.agent_id)
+
+    # Parse and merge extra kwargs from command line
+    if args.kwargs:
+        extra_kwargs = {}
+        for kv in args.kwargs:
+            if "=" in kv:
+                key, value = kv.split("=", 1)
+                # Try to convert to appropriate type
+                if value.lower() == "true":
+                    value = True
+                elif value.lower() == "false":
+                    value = False
+                else:
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            pass  # Keep as string
+                extra_kwargs[key] = value
+            else:
+                logger.warning(f"Invalid kwarg format (expected key=value): {kv}")
+
+        if extra_kwargs:
+            # Merge with existing kwargs (command line overrides config.yaml)
+            merged_kwargs = {**agent.kwargs, **extra_kwargs}
+            logger.info(f"Merged kwargs: {merged_kwargs}")
+            # Create new agent with merged kwargs (Agent is frozen dataclass)
+            agent = Agent(
+                id=agent.id,
+                name=agent.name,
+                agents_dir=agent.agents_dir,
+                start=agent.start,
+                dockerfile=agent.dockerfile,
+                kwargs=merged_kwargs,
+                env_vars=agent.env_vars,
+                privileged=agent.privileged,
+                kwargs_type=agent.kwargs_type,
+            )
+
     if agent.privileged and not (
         os.environ.get("I_ACCEPT_RUNNING_PRIVILEGED_CONTAINERS", "False").lower()
         in ("true", "1", "t")
@@ -245,6 +286,13 @@ if __name__ == "__main__":
         type=str,
         choices=["docker", "apptainer"],
         default="docker",
+    )
+    parser.add_argument(
+        "--kwargs",
+        help="Additional kwargs to pass to the agent (overrides config.yaml). Format: key=value key2=value2",
+        type=str,
+        nargs="*",
+        default=[],
     )
     args = parser.parse_args()
     logger = get_logger(__name__)

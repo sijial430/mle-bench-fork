@@ -169,17 +169,27 @@ echo "$COMPETITION_ID" > /tmp/competition.txt
 NUM_CPUS=$(nproc)
 echo "Detected $NUM_CPUS CPUs"
 
-cat > /tmp/container_config.json << EOF
+# cat > /tmp/container_config.json << EOF
+# {
+#     "mem_limit": "50g",
+#     "shm_size": "50g",
+#     "nano_cpus": ${NUM_CPUS}e9,
+#     "runtime": "sysbox-runc"
+# }
+# EOF
+
+# echo "Container config:"
+# cat /tmp/container_config.json
+
+cat > /tmp/container_config_nosysbox.json << EOF
 {
     "mem_limit": "50g",
     "shm_size": "50g",
-    "nano_cpus": ${NUM_CPUS}e9,
-    "runtime": "sysbox-runc"
 }
 EOF
 
-echo "Container config:"
-cat /tmp/container_config.json
+echo "Container config (no sysbox):"
+cat /tmp/container_config_nosysbox.json
 
 # ==========================================
 # FETCH SECRETS
@@ -201,12 +211,18 @@ else
     echo "WARNING: Failed to fetch OPENAI_API_KEY from Secrets Manager"
 fi
 
+# remove cache to avoid permission issues
+echo "Cleaning up cache directory..."
+sudo rm -rf /home/ubuntu/mle-bench-fork/cache
+sudo rm -rf /home/ubuntu/mle-bench-fork/agents/mlmaster/workspaces
+sudo rm -rf /home/ubuntu/mle-bench-fork/agents/mlmaster/logs
+
 echo "Running ML-Master agent..."
 python run_agent.py \
     --agent-id $AGENT_ID \
     --competition-set /tmp/competition.txt \
     --data-dir /data \
-    --container-config /tmp/container_config.json
+    --container-config /tmp/container_config_nosysbox.json
 
 # ==========================================
 # UPLOAD RESULTS TO S3

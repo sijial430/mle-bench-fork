@@ -169,17 +169,17 @@ echo "$COMPETITION_ID" > /tmp/competition.txt
 NUM_CPUS=$(nproc)
 echo "Detected $NUM_CPUS CPUs"
 
-# cat > /tmp/container_config.json << EOF
-# {
-#     "mem_limit": "50g",
-#     "shm_size": "50g",
-#     "nano_cpus": ${NUM_CPUS}e9,
-#     "runtime": "sysbox-runc"
-# }
-# EOF
+cat > /tmp/container_config.json << EOF
+{
+    "mem_limit": "50g",
+    "shm_size": "50g",
+    "nano_cpus": ${NUM_CPUS}e9,
+    "runtime": "sysbox-runc"
+}
+EOF
 
-# echo "Container config:"
-# cat /tmp/container_config.json
+echo "Container config:"
+cat /tmp/container_config.json
 
 cat > /tmp/container_config_nosysbox.json << EOF
 {
@@ -236,4 +236,4 @@ echo "ML-Master run completed at $(date)"
 echo "=========================================="
 
 # Optional: shutdown instance when done
-sudo shutdown -h now
+# sudo shutdown -h now

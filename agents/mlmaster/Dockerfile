@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=mlebench-env
+ARG BASE_IMAGE=mlmaster
 FROM ${BASE_IMAGE}
 
 # Ensure nonroot user exists (required by run.py)
@@ -17,8 +17,7 @@ ENV CODE_DIR=${CODE_DIR}
 ARG AGENT_DIR
 ENV AGENT_DIR=${AGENT_DIR}
 
-RUN mkdir -p ${LOGS_DIR} ${CODE_DIR} ${AGENT_DIR} ${SUBMISSION_DIR} && \
-    chown -R nonroot:nonroot ${LOGS_DIR} ${CODE_DIR} ${AGENT_DIR} ${SUBMISSION_DIR}
+RUN mkdir -p ${LOGS_DIR} ${CODE_DIR} ${AGENT_DIR}
 
 ARG CONDA_ENV_NAME=ml-master
 ARG REQUIREMENTS=${AGENT_DIR}/requirements.txt
@@ -44,8 +43,7 @@ RUN if ! conda env list | grep -q "^${CONDA_ENV_NAME} "; then \
 # Put all the agent files in the expected location
 COPY . ${AGENT_DIR}
 
-# Make start.sh executable and ensure nonroot owns agent files
-RUN chmod +x ${AGENT_DIR}/start.sh && \
-    chown -R nonroot:nonroot ${AGENT_DIR}
+# Make start.sh executable
+RUN chmod +x ${AGENT_DIR}/start.sh
 
 WORKDIR ${AGENT_DIR}

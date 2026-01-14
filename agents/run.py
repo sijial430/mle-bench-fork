@@ -72,7 +72,8 @@ def startup_heartbeat(container: Container, agent: Agent, logger: logging.Logger
         ("test -d /home/data && echo 'HEARTBEAT: Data directory mounted'", "Data directory"),
     ]
 
-    exec_user = "nonroot"
+    # Some agents (e.g., ml-master) don't have nonroot user in their image
+    exec_user = None if agent.id.startswith("ml-master") else "nonroot"
 
     all_passed = True
     for cmd, check_name in checks:
@@ -117,7 +118,10 @@ def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
     logger.info("[HEARTBEAT] Agent execution starting...")
     logger.info(f"[HEARTBEAT] Command: {' '.join(cmd)}")
 
-    exec_user = "nonroot"
+    # Some agents (e.g., ml-master) don't have nonroot user in their image
+    logger.info(f"[HEARTBEAT] Before exec_user OK")
+    exec_user = None if agent.id.startswith("ml-master") else "nonroot"
+    logger.info(f"[HEARTBEAT] After exec_user OK, exec_user: {exec_user}")
     
     # Execute with both stdout and stderr captured (demux=False merges them)
     # stream=True allows us to see output in real-time

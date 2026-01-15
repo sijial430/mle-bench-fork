@@ -152,6 +152,49 @@ def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
     logger.info(f"[HEARTBEAT] Agent execution finished (exit_code={exit_code})")
 
 
+def save_logs_on_failure(container: Container, run_dir: Path, logger: logging.Logger) -> None:
+    """
+    Attempts to save logs from the container when a failure occurs.
+    This helps with debugging issues like grading server startup failures.
+
+    Args:
+        container: The Docker container.
+        run_dir: The directory where logs will be saved.
+        logger: Logger for the run.
+    """
+    try:
+        logs_dir = run_dir / "logs"
+        logs_dir.mkdir(parents=True, exist_ok=True)
+
+        # Try to capture the entrypoint.log from the container
+        exit_code, output = container.exec_run("cat /home/logs/entrypoint.log")
+        if exit_code == 0 and output:
+            entrypoint_log_path = logs_dir / "entrypoint.log"
+            entrypoint_log_path.write_bytes(output)
+            logger.info(f"[DEBUG] Saved entrypoint.log to {entrypoint_log_path}")
+            # Also log the contents for immediate visibility
+            logger.info("[DEBUG] entrypoint.log contents:")
+            for line in output.decode('utf-8', errors='replace').split('\n')[-50:]:  # Last 50 lines
+                logger.info(f"  {line}")
+
+        # Try to get any conda/pip errors by checking if grading server can be imported
+        exit_code, output = container.exec_run(
+            '/opt/conda/bin/conda run -n mleb python -c "from mlebench.grade import validate_submission; from mlebench.registry import registry; print(\'OK\')"'
+        )
+        if exit_code != 0:
+            logger.error(f"[DEBUG] Grading server import test failed: {output.decode('utf-8', errors='replace')}")
+
+        # Check if Flask is available
+        exit_code, output = container.exec_run(
+            '/opt/conda/bin/conda run -n mleb python -c "import flask; print(flask.__version__)"'
+        )
+        if exit_code != 0:
+            logger.error(f"[DEBUG] Flask import failed: {output.decode('utf-8', errors='replace')}")
+
+    except Exception as e:
+        logger.warning(f"[DEBUG] Could not save failure logs: {e}")
+
+
 def clean_up(container: Container, logger: logging.Logger, retain: bool = False) -> bool:
     """
     Stops and removes the container.
@@ -287,6 +330,9 @@ def run_in_container(
         logger.info(f"Run completed in {time_end - time_start:.2f} seconds.")
         return run_dir
     except Exception as e:
+        # Save logs before cleanup to help with debugging
+        logger.error(f"[DEBUG] Run failed with error: {e}")
+        save_logs_on_failure(container, run_dir, logger)
         raise e
     finally:
         clean_up(container, logger, retain_container)

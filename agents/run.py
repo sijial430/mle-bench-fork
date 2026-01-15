@@ -255,11 +255,11 @@ def run_in_container(
         
         try:
             container.start()
-        except:
+        except Exception:
             # If start fails or doesn't exist (shim might not need it if already started)
             # Check if it's the Apptainer shim
-             if not hasattr(container, "status") or container.status != "created":
-                 pass # Assume it's running or doesn't support start
+            if not hasattr(container, "status") or container.status != "created":
+                pass  # Assume it's running or doesn't support start
         
         # Perform startup heartbeat checks to detect silent failures early
         startup_heartbeat(container, agent, logger)
@@ -271,11 +271,11 @@ def run_in_container(
         if not skip_grading_server:
             logger.info("[HEARTBEAT] Waiting for grading server...")
             exit_code, _ = container.exec_run(
-                'timeout 60s sh -c "while ! curl -s http://localhost:5000/health > /dev/null; do sleep 1; done"'
+                'timeout 120s sh -c "while ! curl -s http://localhost:5000/health > /dev/null; do sleep 1; done"'
             )
             if exit_code != 0:
                 raise RuntimeError(
-                    "The grading server failed to start within 60 seconds. This is likely due to an error in `entrypoint.sh`; check the logs."
+                    "The grading server failed to start within 120 seconds. This is likely due to an error in `entrypoint.sh`; check the logs."
                 )
             logger.info("[HEARTBEAT] Grading server is ready")
         else:

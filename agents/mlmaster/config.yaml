@@ -6,6 +6,7 @@ defaults: &defaults
   start: mlmaster/start.sh
   dockerfile: mlmaster/Dockerfile
   kwargs_type: omegaconf
+  bypass_entrypoint: true
   env_vars: &env_vars
     TIME_LIMIT_SECS: *time_limit
     STEP_LIMIT: *step_count

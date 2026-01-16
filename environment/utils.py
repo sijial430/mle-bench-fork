@@ -122,6 +122,7 @@ def create_competition_container(
     env_vars: dict,
     container_image: str = "mlebench-env",
     privileged: bool = False,
+    bypass_entrypoint: bool = False,
 ) -> Container:
     """
     Creates a container for the given competition, mounting the competition data and agent volumes.
@@ -134,6 +135,8 @@ def create_competition_container(
         env_vars: Environment variables to pass to the container.
         container_image: Docker image to use for the container.
         privileged: Whether to run the container in privileged mode. Default is False.
+        bypass_entrypoint: Whether to bypass the image's entrypoint. Default is False.
+            Set to True for agents like mlmaster that have their own startup scripts.
 
     Returns:
         Created Docker container.
@@ -145,7 +148,7 @@ def create_competition_container(
         image=container_image,
         name=f"competition-{competition.id}-{timestamp}-{unique_id}",
         detach=True,
-        entrypoint="",  # Bypass NVIDIA entrypoint
+        entrypoint="" if bypass_entrypoint else None,  # Bypass entrypoint for agents with custom startup
         command=["tail", "-f", "/dev/null"],  # Keep container alive
         **parse_container_config(container_config),
         volumes=volumes_config,

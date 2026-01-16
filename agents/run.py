@@ -282,6 +282,7 @@ def run_in_container(
         },
         container_image=image,
         privileged=agent.privileged,
+        bypass_entrypoint=agent.bypass_entrypoint,
     )
 
     logger.info(purple(f"Run started: {run_dir}"))

@@ -21,6 +21,7 @@ class Agent:
     env_vars: dict
     privileged: bool = False
     kwargs_type: Optional[str] = None
+    bypass_entrypoint: bool = False
 
     def __post_init__(self):
         assert isinstance(self.start, Path), "Agent start script must be a pathlib.Path object."
@@ -52,6 +53,7 @@ class Agent:
                 kwargs_type=data.get("kwargs_type", None),
                 env_vars=data.get("env_vars", {}),
                 privileged=data.get("privileged", False),
+                bypass_entrypoint=data.get("bypass_entrypoint", False),
             )
         except KeyError as e:
             raise ValueError(f"Missing key {e} in agent config!")
@@ -81,6 +83,7 @@ class Registry:
             kwargs_type = contents[agent_id].get("kwargs_type", None)
             env_vars = contents[agent_id].get("env_vars", {})
             privileged = contents[agent_id].get("privileged", False)
+            bypass_entrypoint = contents[agent_id].get("bypass_entrypoint", False)
 
             # env vars can be used both in kwargs and env_vars
             kwargs = parse_env_var_values(kwargs)
@@ -96,6 +99,7 @@ class Registry:
                     "kwargs_type": kwargs_type,
                     "env_vars": env_vars,
                     "privileged": privileged,
+                    "bypass_entrypoint": bypass_entrypoint,
                 }
             )
 

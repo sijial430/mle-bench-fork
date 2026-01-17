@@ -11,11 +11,11 @@ defaults: &defaults
     STEP_LIMIT: *step_count
 
 kwargs_common: &kwargs_common
-  agent.search.max_debug_depth: 20 # debug down a branch for up to 20 steps
+  agent.search.max_debug_depth: 20 # debug down a branch for up to 5 steps
   # agent.search.debug_prob: 1 # always debug when there's something to debug
   agent.search.debug_prob: 0.7 # debug 70% of the time when there's something to debug
   agent.time_limit: *time_limit
-  exec.timeout: 32400 # 9 hours limit _per step_, to match max of kaggle.com
+  exec.timeout: 900 # 15 min limit per step (was 9 hours - too long, single step consumed entire budget)
   copy_data: False # use symbolic links
 
 aide:

@@ -12,7 +12,7 @@ class LLM:
     """
     
     def __init__(
-        self, 
+        self,
         base_url: str = "http://localhost:8000/v1",
         api_key: str = "dummy-key",
         model_name: str = "default-model",
@@ -21,10 +21,11 @@ class LLM:
         stop_tokens: Optional[Union[str, List[str]]] = None,
         retry_time: int = 20,
         delay_time: int = 3,
+        timeout: float = 300.0,
     ):
         """
         Initialize the VLLM LLM class.
-        
+
         Args:
             base_url: The URL of the VLLM service.
             api_key: API key (generally not important when self-hosted).
@@ -32,6 +33,9 @@ class LLM:
             temperature: Temperature parameter to control output randomness.
             max_tokens: Maximum number of tokens to generate.
             stop_tokens: List of tokens that signal the end of generation.
+            retry_time: Number of retries on failure.
+            delay_time: Delay between retries in seconds.
+            timeout: Request timeout in seconds (default 300s = 5 minutes).
         """
         self.base_url = base_url
         self.api_key = api_key
@@ -41,11 +45,13 @@ class LLM:
         self.stop_tokens = stop_tokens
         self.retry_time = retry_time
         self.delay_time = delay_time
-        
+        self.timeout = timeout
+
         # initalize OpenAI client
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url=self.base_url
+            base_url=self.base_url,
+            timeout=self.timeout
         )
     
     def generate(

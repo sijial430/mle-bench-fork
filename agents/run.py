@@ -141,7 +141,7 @@ def execute_agent(container: Container, agent: Agent, logger: logging.Logger):
         output_received = True
         last_output_time = time.monotonic()
         decoded = chunk.decode('utf-8').strip()
-        if decoded:
+        if decoded and "API_KEY" not in decoded:
             logger.info(f"[Container] {decoded}")
 
     # Log completion status

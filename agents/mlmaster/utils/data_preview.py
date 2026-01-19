@@ -16,17 +16,35 @@ code_files = {".py", ".sh", ".yaml", ".yml", ".md", ".html", ".xml", ".log", ".r
 plaintext_files = {".txt", ".csv", ".json", ".tsv"} | code_files
 
 
-def get_file_len_size(f: Path) -> tuple[int, str]:
+def get_file_len_size(f: Path, max_count_size: int = 50_000_000) -> tuple[int, str]:
     """
     Calculate the size of a file (#lines for plaintext files, otherwise #bytes)
     Also returns a human-readable string representation of the size.
+
+    For large files (>max_count_size bytes), estimates line count from file size
+    to avoid hanging on huge files.
     """
+    file_size = f.stat().st_size
+
     if f.suffix in plaintext_files:
-        num_lines = sum(1 for _ in open(f))
-        return num_lines, f"{num_lines} lines"
+        # For large files, estimate line count from file size to avoid hanging
+        if file_size > max_count_size:
+            # Sample first 1k to estimate average line length
+            sample_size = min(1000, file_size)
+            with open(f, 'rb') as fp:
+                sample = fp.read(sample_size)
+            sample_lines = sample.count(b'\n')
+            if sample_lines > 0:
+                avg_line_len = sample_size / sample_lines
+                estimated_lines = int(file_size / avg_line_len)
+                return estimated_lines, f"~{estimated_lines:,} lines (estimated)"
+            else:
+                return file_size, humanize.naturalsize(file_size)
+        else:
+            num_lines = sum(1 for _ in open(f))
+            return num_lines, f"{num_lines} lines"
     else:
-        s = f.stat().st_size
-        return s, humanize.naturalsize(s)
+        return file_size, humanize.naturalsize(file_size)
 
 
 def file_tree(path: Path, depth=0,max_dirs=20) -> str:
@@ -59,22 +77,35 @@ def _walk(path: Path):
         yield p
 
 
-def preview_csv(p: Path, file_name: str, simple=True) -> str:
+def preview_csv(p: Path, file_name: str, simple=True, max_rows: int = 1000) -> str:
     """Generate a textual preview of a csv file
 
     Args:
         p (Path): the path to the csv file
         file_name (str): the file name to use in the preview
         simple (bool, optional): whether to use a simplified version of the preview. Defaults to True.
+        max_rows (int, optional): maximum rows to read for preview. Defaults to 1000.
 
     Returns:
         str: the textual preview
     """
-    df = pd.read_csv(p)
+    # Check file size to determine if we need to sample
+    file_size = p.stat().st_size
+    is_large_file = file_size > 50_000_000  # 50MB threshold
+
+    if is_large_file:
+        # For large files, only read a sample
+        df = pd.read_csv(p, nrows=max_rows)
+        # Estimate total rows from file size
+        estimated_rows, _ = get_file_len_size(p)
+        row_info = f"~{estimated_rows:,} rows (sampled {max_rows:,})"
+    else:
+        df = pd.read_csv(p)
+        row_info = f"{df.shape[0]} rows"
 
     out = []
 
-    out.append(f"-> {file_name} has {df.shape[0]} rows and {df.shape[1]} columns.")
+    out.append(f"-> {file_name} has {row_info} and {df.shape[1]} columns.")
 
     if simple:
         cols = df.columns.tolist()
@@ -111,8 +142,14 @@ def preview_csv(p: Path, file_name: str, simple=True) -> str:
     return "\n".join(out)
 
 
-def preview_json(p: Path, file_name: str):
-    """Generate a textual preview of a json file using a generated json schema"""
+def preview_json(p: Path, file_name: str, max_lines: int = 1000):
+    """Generate a textual preview of a json file using a generated json schema
+
+    Args:
+        p (Path): the path to the json file
+        file_name (str): the file name to use in the preview
+        max_lines (int, optional): maximum lines to read for JSONL files. Defaults to 1000.
+    """
     builder = SchemaBuilder()
     with open(p) as f:
         first_line = f.readline().strip()
@@ -126,8 +163,10 @@ def preview_json(p: Path, file_name: str):
             # if the the next line exists and is not empty, then it is a JSONL file
             second_line = f.readline().strip()
             if second_line:
-                f.seek(0)  # so reset and read line by line
-                for line in f:
+                f.seek(0)  # so reset and read line by line, but limit to max_lines
+                for i, line in enumerate(f):
+                    if i >= max_lines:
+                        break
                     builder.add_object(json.loads(line.strip()))
             # if it is empty, then it's a single JSON object file
             else:
@@ -135,6 +174,10 @@ def preview_json(p: Path, file_name: str):
 
         except json.JSONDecodeError:
             # if first line isn't JSON, then it's prettified and we can read whole file
+            # but check file size first
+            file_size = p.stat().st_size
+            if file_size > 50_000_000:  # 50MB threshold
+                return f"-> {file_name} is a large JSON file ({humanize.naturalsize(file_size)}), schema preview skipped"
             f.seek(0)
             builder.add_object(json.load(f))
 

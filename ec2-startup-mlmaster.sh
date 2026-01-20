@@ -15,18 +15,60 @@ echo "Waiting for system to be ready..."
 sleep 10
 
 # ==========================================
-# CONFIGURATION - CUSTOMIZE THESE VALUES
+# STATIC CONFIGURATION
 # ==========================================
 AWS_REGION="us-east-1"
 S3_DATA_BUCKET="mlebench-data"
 S3_RESULTS_BUCKET="mlebench-results"
-COMPETITION_ID="spaceship-titanic"
-AGENT_ID="ml-master"
 MLEBENCH_REPO="https://github.com/sijial430/mle-bench-fork.git"
 API_KEY_SECRET_NAME="sijial_oai_key"
 
-echo "Competition: $COMPETITION_ID"
-echo "Agent: $AGENT_ID"
+# ==========================================
+# READ CONFIGURATION FROM EC2 INSTANCE TAGS
+# ==========================================
+echo "Reading configuration from EC2 instance tags..."
+
+# Get IMDSv2 token
+IMDS_TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 300")
+
+# Helper function to get instance tag value
+get_tag() {
+    local tag_name=$1
+    local default_value=$2
+    local value=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+        "http://169.254.169.254/latest/meta-data/tags/instance/$tag_name" 2>/dev/null)
+    if [ -z "$value" ] || [ "$value" == "Not Found" ]; then
+        echo "$default_value"
+    else
+        echo "$value"
+    fi
+}
+
+# Read configuration from tags (with defaults)
+COMPETITION_ID=$(get_tag "Competition" "spaceship-titanic")
+AGENT_ID=$(get_tag "AgentId" "ml-master")
+CODE_MODEL=$(get_tag "CodeModel" "gpt-5.1")
+CODE_TEMP=$(get_tag "CodeTemp" "1")
+FEEDBACK_MODEL=$(get_tag "FeedbackModel" "gpt-5-mini-2025-08-07")
+FEEDBACK_TEMP=$(get_tag "FeedbackTemp" "1")
+STEPS=$(get_tag "Steps" "125")
+TIME_LIMIT_SECS=$(get_tag "TimeLimitSecs" "21600")
+PARALLEL_SEARCH_NUM=$(get_tag "ParallelSearchNum" "3")
+NUM_DRAFTS=$(get_tag "NumDrafts" "5")
+
+echo "=========================================="
+echo "Configuration loaded from instance tags:"
+echo "  Competition: $COMPETITION_ID"
+echo "  Agent: $AGENT_ID"
+echo "  Code Model: $CODE_MODEL"
+echo "  Code Temp: $CODE_TEMP"
+echo "  Feedback Model: $FEEDBACK_MODEL"
+echo "  Feedback Temp: $FEEDBACK_TEMP"
+echo "  Steps: $STEPS"
+echo "  Time Limit: $TIME_LIMIT_SECS seconds"
+echo "  Parallel Search Num: $PARALLEL_SEARCH_NUM"
+echo "  Num Drafts: $NUM_DRAFTS"
+echo "=========================================="
 
 # ==========================================
 # INSTALL DEPENDENCIES
@@ -222,7 +264,16 @@ python run_agent.py \
     --agent-id $AGENT_ID \
     --competition-set /tmp/competition.txt \
     --data-dir /data \
-    --container-config /tmp/container_config_nosysbox.json
+    --container-config /tmp/container_config_nosysbox.json \
+    --kwargs \
+        "agent.code.model=$CODE_MODEL" \
+        "agent.code.temp=$CODE_TEMP" \
+        "agent.feedback.model=$FEEDBACK_MODEL" \
+        "agent.feedback.temp=$FEEDBACK_TEMP" \
+        "agent.steps=$STEPS" \
+        "agent.time_limit=$TIME_LIMIT_SECS" \
+        "agent.search.parallel_search_num=$PARALLEL_SEARCH_NUM" \
+        "agent.search.num_drafts=$NUM_DRAFTS"
 
 # ==========================================
 # UPLOAD RESULTS TO S3
@@ -236,4 +287,4 @@ echo "ML-Master run completed at $(date)"
 echo "=========================================="
 
 # Optional: shutdown instance when done
-# sudo shutdown -h now
+sudo shutdown -h now

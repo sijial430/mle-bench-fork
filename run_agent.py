@@ -5,7 +5,7 @@ import logging
 import os
 import time
 import traceback
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +14,7 @@ import docker
 from agents.registry import Agent
 from agents.registry import registry as agent_registry
 from agents.run import run_in_container
+from agents.utils import apply_cli_overrides
 from environment.defaults import DEFAULT_CONTAINER_CONFIG_PATH
 from mlebench.data import is_dataset_prepared
 from mlebench.registry import Competition, registry
@@ -103,46 +104,12 @@ async def main(args):
     registry = registry.set_data_dir(Path(args.data_dir))
 
     agent = agent_registry.get_agent(args.agent_id)
-
-    # Parse and merge extra kwargs from command line
+    merged_kwargs, merged_env_vars = apply_cli_overrides(agent, args.kwargs, args.env_vars)
+    agent = replace(agent, kwargs=merged_kwargs, env_vars=merged_env_vars)
     if args.kwargs:
-        extra_kwargs = {}
-        for kv in args.kwargs:
-            if "=" in kv:
-                key, value = kv.split("=", 1)
-                # Try to convert to appropriate type
-                if value.lower() == "true":
-                    value = True
-                elif value.lower() == "false":
-                    value = False
-                else:
-                    try:
-                        value = int(value)
-                    except ValueError:
-                        try:
-                            value = float(value)
-                        except ValueError:
-                            pass  # Keep as string
-                extra_kwargs[key] = value
-            else:
-                logger.warning(f"Invalid kwarg format (expected key=value): {kv}")
-
-        if extra_kwargs:
-            # Merge with existing kwargs (command line overrides config.yaml)
-            merged_kwargs = {**agent.kwargs, **extra_kwargs}
-            logger.info(f"Merged kwargs: {merged_kwargs}")
-            # Create new agent with merged kwargs (Agent is frozen dataclass)
-            agent = Agent(
-                id=agent.id,
-                name=agent.name,
-                agents_dir=agent.agents_dir,
-                start=agent.start,
-                dockerfile=agent.dockerfile,
-                kwargs=merged_kwargs,
-                env_vars=agent.env_vars,
-                privileged=agent.privileged,
-                kwargs_type=agent.kwargs_type,
-            )
+        logger.info(f"Overridden kwargs: {args.kwargs}")
+    if args.env_vars:
+        logger.info(f"Overridden env_vars: {args.env_vars}")
 
     if agent.privileged and not (
         os.environ.get("I_ACCEPT_RUNNING_PRIVILEGED_CONTAINERS", "False").lower()
@@ -290,6 +257,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--kwargs",
         help="Additional kwargs to pass to the agent (overrides config.yaml). Format: key=value key2=value2",
+        type=str,
+        nargs="*",
+        default=[],
+    )
+    parser.add_argument(
+        "--env-vars",
+        help="Additional env vars to pass to the container (overrides config.yaml). Format: KEY=value KEY2=value2",
         type=str,
         nargs="*",
         default=[],

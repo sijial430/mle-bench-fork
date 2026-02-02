@@ -31,3 +31,12 @@ RUN conda run -n ${CONDA_ENV_NAME} pip install -r ${AGENT_DIR}/requirements.txt 
 
 # put all the agent files in the expected location
 COPY . ${AGENT_DIR}
+
+# Overlay local aide source on top of the pip-installed package so that
+# any patches in aide_src/ take effect without changing the upstream repo.
+ARG CONDA_ENV_NAME=agent
+RUN AIDE_SITE_PKG=$(conda run -n ${CONDA_ENV_NAME} python -c "import aide, pathlib; print(pathlib.Path(aide.__file__).parent)") && \
+    if [ -d ${AGENT_DIR}/aide_src ]; then \
+        cp -rf ${AGENT_DIR}/aide_src/* "$AIDE_SITE_PKG/" ; \
+        echo "Overlaid local aide_src onto $AIDE_SITE_PKG" ; \
+    fi

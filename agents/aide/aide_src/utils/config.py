@@ -37,6 +37,7 @@ class SearchConfig:
     max_debug_depth: int
     debug_prob: float
     num_drafts: int
+    max_parallel_width: int
 
 
 @dataclass

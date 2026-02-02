@@ -86,8 +86,18 @@ class Agent:
             logger.debug("[search policy] drafting new node (no good nodes)")
             return None
 
+        # filter out nodes that have reached max_parallel_width children
+        if search_cfg.max_parallel_width > 0:
+            good_nodes = [
+                n for n in good_nodes
+                if len(n.children) < search_cfg.max_parallel_width
+            ]
+            if not good_nodes:
+                logger.debug("[search policy] all good nodes at max width, drafting new node")
+                return None
+
         # greedy
-        greedy_node = self.journal.get_best_node()
+        greedy_node = max(good_nodes, key=lambda n: n.metric)
         logger.debug("[search policy] greedy node selected")
         return greedy_node
 

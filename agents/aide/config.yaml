@@ -14,7 +14,6 @@ kwargs_common: &kwargs_common
   agent.search.max_debug_depth: 20 # debug down a branch for up to 20 steps
   agent.search.debug_prob: 1.0 # always debug when there's something to debug
   agent.search.max_parallel_width: 0 # 0 = unlimited
-  agent.time_limit: *time_limit
   exec.timeout: 32400
   copy_data: False # use symbolic links
 

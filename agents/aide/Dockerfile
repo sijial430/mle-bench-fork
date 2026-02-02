@@ -26,7 +26,9 @@ COPY requirements.txt ${AGENT_DIR}/requirements.txt
 RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 
 # create conda environment and install the requirements to it
-RUN conda run -n ${CONDA_ENV_NAME} pip install -r ${AGENT_DIR}/requirements.txt && \
+# Install aideml first (pins openai==1.48.0), then upgrade openai for Responses API support
+RUN conda run -n ${CONDA_ENV_NAME} pip install git+https://github.com/thesofakillers/aideml@v6.3.3 && \
+    conda run -n ${CONDA_ENV_NAME} pip install 'openai>=1.68.0' && \
     conda clean -afy
 
 # put all the agent files in the expected location

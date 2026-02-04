@@ -1,5 +1,6 @@
 """configuration and setup utils"""
 
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Hashable, cast
@@ -196,3 +197,9 @@ def save_run(cfg: Config, journal):
     best_node = journal.get_best_node(only_good=False)
     with open(cfg.log_dir / "best_solution.py", "w") as f:
         f.write(best_node.code)
+    # copy submission.csv from working/ to submission/ (symlinked to /home/submission/)
+    submission_src = cfg.workspace_dir / "working" / "submission.csv"
+    submission_dst = cfg.workspace_dir / "submission" / "submission.csv"
+    if submission_src.exists():
+        submission_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(submission_src, submission_dst)

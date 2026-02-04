@@ -3,9 +3,11 @@ mlebench/competitions/**/kernels/
 outputs/
 /data/
 /data_privateonly/
-
-runs/*/*/
+analysis/
+runs/*
 runs/*/metadata.json
+*.md
+journals/
 
 # Re-include metadata.json, dolos, and grading reports
 #!runs/*/dolos

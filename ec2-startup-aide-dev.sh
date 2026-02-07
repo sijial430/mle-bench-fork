@@ -180,13 +180,13 @@ if [ ! -d "/home/ubuntu/mle-bench-fork" ]; then
     # Checkout the specified branch if set
     if [ -n "$GIT_BRANCH" ]; then
         echo "Checking out branch: $GIT_BRANCH"
-        git checkout "$GIT_BRANCH"
+        sudo -u ubuntu git checkout "$GIT_BRANCH"
     fi
 
     # Pull LFS files (leaderboards, CSVs, top solutions)
     echo "Pulling Git LFS files..."
-    git lfs pull
-    
+    sudo -u ubuntu git lfs pull
+
     # Create virtual environment and install mle-bench-fork
     echo "Creating virtual environment..."
     python3 -m venv /home/ubuntu/mle-bench-fork/.venv
@@ -199,11 +199,11 @@ else
     # Checkout the specified branch if set
     if [ -n "$GIT_BRANCH" ]; then
         echo "Checking out branch: $GIT_BRANCH"
-        git checkout "$GIT_BRANCH"
-        git pull origin "$GIT_BRANCH"
+        sudo -u ubuntu git checkout "$GIT_BRANCH"
+        sudo -u ubuntu git pull origin "$GIT_BRANCH"
     fi
     # Make sure LFS files are up to date
-    git lfs pull
+    sudo -u ubuntu git lfs pull
     # Activate existing venv
     source /home/ubuntu/mle-bench-fork/.venv/bin/activate
 fi

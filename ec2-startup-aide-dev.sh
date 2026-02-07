@@ -40,6 +40,22 @@ get_tag() {
   imds_get "meta-data/tags/instance/${key}" 2>/dev/null || true
 }
 
+# Wait for instance tags to be available (metadata can be delayed after boot)
+wait_for_tags() {
+  local max_attempts=12
+  local attempt=1
+  while [ "$attempt" -le "$max_attempts" ]; do
+    local steps=$(get_tag Steps)
+    if [ -n "$steps" ] || [ "$attempt" -eq "$max_attempts" ]; then
+      break
+    fi
+    echo "Instance tags not ready (attempt $attempt/$max_attempts), waiting 10s..."
+    sleep 10
+    attempt=$((attempt + 1))
+  done
+}
+wait_for_tags
+
 # Defaults if tags are missing / metadata tags not enabled
 COMPETITION_ID="$(get_tag Competition)"
 AGENT_ID="$(get_tag AgentId)"
@@ -47,11 +63,35 @@ AGENT_ID="$(get_tag AgentId)"
 : "${COMPETITION_ID:=spaceship-titanic}"
 : "${AGENT_ID:=aide/dev}"
 
+# Read agent-specific kwargs from EC2 tags
+STEPS="$(get_tag Steps)"
+TIME_LIMIT_SECS="$(get_tag TimeLimitSecs)"
+DEBUG_DEPTH="$(get_tag DebugDepth)"
+DEBUG_PROB="$(get_tag DebugProb)"
+EXEC_TIMEOUT="$(get_tag ExecTimeout)"
+MAX_PARALLEL_WIDTH="$(get_tag MaxParallelWidth)"
+CODE_MODEL="$(get_tag CodeModel)"
+CODE_TEMP="$(get_tag CodeTemp)"
+FEEDBACK_MODEL="$(get_tag FeedbackModel)"
+FEEDBACK_TEMP="$(get_tag FeedbackTemp)"
+GIT_BRANCH="$(get_tag GitBranch)"
+
 MLEBENCH_REPO="https://github.com/sijial430/mle-bench-fork.git"  # Change to your repo if forked
 API_KEY_SECRET_NAME="sijial_oai_key"
 
 echo "Competition: $COMPETITION_ID"
 echo "Agent: $AGENT_ID"
+echo "Steps: ${STEPS:-default}"
+echo "TimeLimitSecs: ${TIME_LIMIT_SECS:-default}"
+echo "DebugDepth: ${DEBUG_DEPTH:-default}"
+echo "DebugProb: ${DEBUG_PROB:-default}"
+echo "ExecTimeout: ${EXEC_TIMEOUT:-default}"
+echo "MaxParallelWidth: ${MAX_PARALLEL_WIDTH:-default}"
+echo "GitBranch: ${GIT_BRANCH:-default}"
+echo "CodeModel: ${CODE_MODEL:-default}"
+echo "CodeTemp: ${CODE_TEMP:-default}"
+echo "FeedbackModel: ${FEEDBACK_MODEL:-default}"
+echo "FeedbackTemp: ${FEEDBACK_TEMP:-default}"
 
 # ==========================================
 # INSTALL DEPENDENCIES
@@ -136,7 +176,13 @@ if [ ! -d "/home/ubuntu/mle-bench-fork" ]; then
     cd /home/ubuntu
     sudo -u ubuntu git clone $MLEBENCH_REPO
     cd /home/ubuntu/mle-bench-fork
-    
+
+    # Checkout the specified branch if set
+    if [ -n "$GIT_BRANCH" ]; then
+        echo "Checking out branch: $GIT_BRANCH"
+        git checkout "$GIT_BRANCH"
+    fi
+
     # Pull LFS files (leaderboards, CSVs, top solutions)
     echo "Pulling Git LFS files..."
     git lfs pull
@@ -150,6 +196,12 @@ if [ ! -d "/home/ubuntu/mle-bench-fork" ]; then
 else
     echo "mle-bench-fork already exists"
     cd /home/ubuntu/mle-bench-fork
+    # Checkout the specified branch if set
+    if [ -n "$GIT_BRANCH" ]; then
+        echo "Checking out branch: $GIT_BRANCH"
+        git checkout "$GIT_BRANCH"
+        git pull origin "$GIT_BRANCH"
+    fi
     # Make sure LFS files are up to date
     git lfs pull
     # Activate existing venv
@@ -187,7 +239,7 @@ sudo usermod -aG docker ubuntu || true
 
 # Login to ECR
 echo "Logging into ECR..."
-# aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
 # Pull images from ECR
@@ -195,7 +247,7 @@ echo "Pulling Docker images..."
 # sudo docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
 # sudo docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest
 sudo docker pull $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest
-sudo docker pull $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest
+sudo docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide-dev:latest
 
 # Build the base environment image
 # sudo docker build --build-arg INSTALL_HEAVY_DEPENDENCIES=false -t mlebench-env -f environment/Dockerfile .
@@ -227,48 +279,7 @@ echo "Tagging images..."
 # sudo docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest mlebench-env:latest
 # sudo docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest aide:latest
 sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-env:latest mlebench-env:latest
-sudo docker tag $SHARED_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide:latest aide:latest
-
-# ==========================================
-# PATCH AIDE FOR GPT-4.1/GPT-5 TEMPERATURE SUPPORT
-# ==========================================
-echo "Patching AIDE package for GPT-4.1/GPT-5 temperature support..."
-
-# Create and start a temporary container to apply patches (keeps it running with tail -f)
-TEMP_CONTAINER=$(sudo docker run -d aide:latest tail -f /dev/null)
-echo "Created temporary container: $TEMP_CONTAINER"
-
-# Patch 1: Fix backend_openai.py to remove temperature for gpt-4.1 and gpt-5 models
-echo "Applying patch 1: Fix GPT-4.1/GPT-5 model detection in backend_openai.py..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'sed -i "s/re\.match(r\"\^o\\\\d\", filtered_kwargs\[\"model\"\])/re.match(r\"\^(o\\\\d|gpt-[45])\", filtered_kwargs[\"model\"])/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/backend/backend_openai.py'
-
-# Patch 2: Change default temperature from 0.5 to 1.0 in config.yaml
-echo "Applying patch 2: Update default temperature in config.yaml..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'sed -i "/^  code:/,/^  feedback:/ s/temp: 0\.5/temp: 1.0/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml && \
-  sed -i "/^  feedback:/,/^  search:/ s/temp: 0\.5/temp: 1.0/" \
-  /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml'
-
-# Verify patches were applied
-echo "Verifying patches..."
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'grep -n "gpt-\[45\]" /opt/conda/envs/agent/lib/python*/site-packages/aide/backend/backend_openai.py || echo "WARNING: Patch 1 verification failed"'
-sudo docker exec $TEMP_CONTAINER bash -c \
-  'grep -n "temp: 1.0" /opt/conda/envs/agent/lib/python*/site-packages/aide/utils/config.yaml || echo "WARNING: Patch 2 verification failed"'
-
-# Commit the patched container as the new image
-echo "Committing patched container..."
-sudo docker commit $TEMP_CONTAINER aide:latest
-
-# Stop and remove the temporary container
-echo "Cleaning up temporary container..."
-sudo docker stop $TEMP_CONTAINER
-sudo docker rm $TEMP_CONTAINER
-
-echo "AIDE patches applied successfully!"
+sudo docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mlebench-aide-dev:latest aide:latest
 
 # ==========================================
 # RUN THE AGENT
@@ -316,13 +327,39 @@ else
     echo "WARNING: Failed to fetch OPENAI_API_KEY from Secrets Manager"
 fi
 
+# Build kwargs array from EC2 tags
+KWARGS_ARGS=()
+[ -n "$STEPS" ] && KWARGS_ARGS+=("agent.steps=$STEPS")
+[ -n "$DEBUG_DEPTH" ] && KWARGS_ARGS+=("agent.search.max_debug_depth=$DEBUG_DEPTH")
+[ -n "$DEBUG_PROB" ] && KWARGS_ARGS+=("agent.search.debug_prob=$DEBUG_PROB")
+[ -n "$EXEC_TIMEOUT" ] && KWARGS_ARGS+=("exec.timeout=$EXEC_TIMEOUT")
+[ -n "$MAX_PARALLEL_WIDTH" ] && KWARGS_ARGS+=("agent.search.max_parallel_width=$MAX_PARALLEL_WIDTH")
+[ -n "$CODE_MODEL" ] && KWARGS_ARGS+=("agent.code.model=$CODE_MODEL")
+[ -n "$CODE_TEMP" ] && KWARGS_ARGS+=("agent.code.temp=$CODE_TEMP")
+[ -n "$FEEDBACK_MODEL" ] && KWARGS_ARGS+=("agent.feedback.model=$FEEDBACK_MODEL")
+[ -n "$FEEDBACK_TEMP" ] && KWARGS_ARGS+=("agent.feedback.temp=$FEEDBACK_TEMP")
+
+# Build env-var overrides so container env_vars stay in sync with kwargs.
+# config.yaml uses YAML anchors that are resolved at parse time, so env_vars
+# like TIME_LIMIT_SECS and STEP_LIMIT won't pick up kwarg overrides otherwise.
+ENV_ARGS=()
+[ -n "$STEPS" ] && ENV_ARGS+=("STEP_LIMIT=$STEPS")
+[ -n "$TIME_LIMIT_SECS" ] && ENV_ARGS+=("TIME_LIMIT_SECS=$TIME_LIMIT_SECS")
+
+echo "Runtime kwargs overrides: ${KWARGS_ARGS[*]:-none}"
+echo "Runtime env-var overrides: ${ENV_ARGS[*]:-none}"
+
 echo "Running agent..."
-python run_agent.py \
-    --agent-id $AGENT_ID \
-    --competition-set /tmp/competition.txt \
-    --data-dir /data \
+RUN_CMD=(python run_agent.py
+    --agent-id $AGENT_ID
+    --competition-set /tmp/competition.txt
+    --data-dir /data
     --container-config /tmp/container_config.json
-    # --container-config /home/ubuntu/mle-bench-fork/environment/config/container_configs/small.json
+)
+[ ${#KWARGS_ARGS[@]} -gt 0 ] && RUN_CMD+=(--kwargs "${KWARGS_ARGS[@]}")
+[ ${#ENV_ARGS[@]} -gt 0 ] && RUN_CMD+=(--env-vars "${ENV_ARGS[@]}")
+
+"${RUN_CMD[@]}"
 
 # ==========================================
 # UPLOAD RESULTS TO S3

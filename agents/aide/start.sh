@@ -6,6 +6,14 @@ cd ${AGENT_DIR}
 eval "$(conda shell.bash hook)" # make conda available to the shell
 conda activate agent
 
+# Overlay local aide_src/ onto the installed aide package at runtime,
+# so patches take effect without rebuilding the Docker image.
+if [ -d ${AGENT_DIR}/aide_src ]; then
+  AIDE_SITE_PKG=$(python -c "import aide, pathlib; print(pathlib.Path(aide.__file__).parent)")
+  cp -rf ${AGENT_DIR}/aide_src/* "$AIDE_SITE_PKG/"
+  echo "Overlaid local aide_src onto $AIDE_SITE_PKG"
+fi
+
 # determine hardware available
 if command -v nvidia-smi &> /dev/null && nvidia-smi --query-gpu=name --format=csv,noheader &> /dev/null; then
   HARDWARE=$(nvidia-smi --query-gpu=name --format=csv,noheader \
@@ -79,7 +87,7 @@ mkdir -p ${AGENT_DIR}/logs
 # symbolic linking
 ln -s ${LOGS_DIR} ${AGENT_DIR}/logs/exp
 ln -s ${CODE_DIR} ${AGENT_DIR}/workspaces/exp/best_solution
-ln -s ${SUBMISSION_DIR} ${AGENT_DIR}/workspaces/exp/best_submission
+ln -s ${SUBMISSION_DIR} ${AGENT_DIR}/workspaces/exp/submission
 
 # run with timeout, and print if timeout occurs
 timeout $TIME_LIMIT_SECS aide data_dir="/home/data/" desc_file="${AGENT_DIR}/full_instructions.txt" \

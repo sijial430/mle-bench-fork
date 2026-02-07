@@ -43,6 +43,7 @@ format_time() {
 export TIME_LIMIT=$(format_time $TIME_LIMIT_SECS)
 
 # overwrite instructions.txt with instructions_obfuscated.txt if $OBFUSCATE is set
+export OBFUSCATE=true
 if [ "$OBFUSCATE" = "true" ]; then
   if [ ! -w /home/data/ ]; then
     echo "Obfuscation not implemented for read-only mounts"

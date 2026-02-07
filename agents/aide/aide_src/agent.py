@@ -120,8 +120,8 @@ class Agent:
         pkg_str = ", ".join([f"`{p}`" for p in pkgs])
 
         env_prompt = {
-            "Installed Packages": f"Your solution can use any relevant machine learning packages such as: {pkg_str}. Feel free to use any other packages too (all packages are already installed!). For neural networks we suggest using PyTorch rather than TensorFlow."
-            # "Installed Packages": f"Your solution can use any relevant machine learning packages such as: {pkg_str}. Feel free to use any other packages too (all packages are already installed!). For neural networks we suggest using PyTorch rather than TensorFlow. Neural network–based solutions are strongly preferred whenever they are applicable, as they generally achieve superior performance."
+            # "Installed Packages": f"Your solution can use any relevant machine learning packages such as: {pkg_str}. Feel free to use any other packages too (all packages are already installed!). For neural networks we suggest using PyTorch rather than TensorFlow."
+            "Installed Packages": f"Your solution can use any relevant machine learning packages such as: {pkg_str}. Feel free to use any other packages too (all packages are already installed!). For neural networks we suggest using PyTorch rather than TensorFlow. Neural network–based solutions are strongly preferred whenever they are applicable, as they generally achieve superior performance."
         }
         return env_prompt
 
@@ -186,7 +186,8 @@ class Agent:
     def _draft(self) -> Node:
         prompt: Any = {
             "Introduction": (
-                "You are a Kaggle grandmaster attending a competition. "
+                #"You are a Kaggle grandmaster attending a competition. "
+                "You are an expert machine learning engineer attending a competition."
                 "In order to win this competition, you need to come up with an excellent and creative plan "
                 "for a solution and then implement this solution in Python. We will now provide a description of the task."
             ),
@@ -197,7 +198,8 @@ class Agent:
         prompt["Instructions"] |= self._prompt_resp_fmt
         prompt["Instructions"] |= {
             "Solution sketch guideline": [
-                "This first solution design should be relatively simple, without ensembling or hyper-parameter optimization.",
+                #"This first solution design should be relatively simple, without ensembling or hyper-parameter optimization.",
+                "The recommended strategy of this first solution design is to start with neural networks using torch."
                 "Take the Memory section into consideration when proposing the design,"
                 " don't propose the same modelling solution but keep the evaluation the same.",
                 "The solution sketch should be 3-5 sentences.",
@@ -218,7 +220,8 @@ class Agent:
     def _improve(self, parent_node: Node) -> Node:
         prompt: Any = {
             "Introduction": (
-                "You are a Kaggle grandmaster attending a competition. You are provided with a previously developed "
+                # "You are a Kaggle grandmaster attending a competition. You are provided with a previously developed "
+                "You are an expert machine learning engineer attending a competition. You are provided with a previously developed "
                 "solution below and should improve it in order to further increase the (test time) performance. "
                 "For this you should first outline a brief plan in natural language for how the solution can be improved and "
                 "then implement this improvement in Python based on the provided previous solution. "
@@ -254,7 +257,8 @@ class Agent:
     def _debug(self, parent_node: Node) -> Node:
         prompt: Any = {
             "Introduction": (
-                "You are a Kaggle grandmaster attending a competition. "
+                # "You are a Kaggle grandmaster attending a competition. "
+                "You are an expert machine learning engineer attending a competition. "
                 "Your previous solution had a bug, so based on the information below, you should revise it in order to fix this bug. "
                 "Your response should be an implementation outline in natural language,"
                 " followed by a single markdown code block which implements the bugfix/solution."
@@ -311,7 +315,8 @@ class Agent:
 
         prompt = {
             "Introduction": (
-                "You are a Kaggle grandmaster attending a competition. "
+                # "You are a Kaggle grandmaster attending a competition. "
+                "You are an expert machine learning engineer attending a competition. "
                 "You have written code to solve this task and now need to evaluate the output of the code execution. "
                 "You should determine if there were any bugs as well as report the empirical findings."
             ),

@@ -42,18 +42,15 @@ format_time() {
 }
 export TIME_LIMIT=$(format_time $TIME_LIMIT_SECS)
 
-# overwrite instructions.txt with instructions_obfuscated.txt if $OBFUSCATE is set
 export OBFUSCATE=true
-if [ "$OBFUSCATE" = "true" ]; then
-  if [ ! -w /home/data/ ]; then
-    echo "Obfuscation not implemented for read-only mounts"
-    exit 1
-  fi
-  mv /home/instructions_obfuscated.txt /home/instructions.txt
-fi
 
 # start a new file to store the full instructions, starting with general instructions
-cp /home/instructions.txt ${AGENT_DIR}/full_instructions.txt
+# use obfuscated version if $OBFUSCATE is set
+if [ "$OBFUSCATE" = "true" ]; then
+  cp /home/instructions_obfuscated.txt ${AGENT_DIR}/full_instructions.txt
+else
+  cp /home/instructions.txt ${AGENT_DIR}/full_instructions.txt
+fi
 
 # Update instructions for agent-specific details: replace `/home/` paths to make paths relative
 # (since the agent will have its own copies of these files in its workspace).
@@ -68,15 +65,12 @@ envsubst < ${AGENT_DIR}/additional_notes.txt >> ${AGENT_DIR}/full_instructions.t
 # finally, append the comp instructions, with a linebreak in between
 printf "\nCOMPETITION INSTRUCTIONS\n------\n\n" >> ${AGENT_DIR}/full_instructions.txt
 
-# overwrite description.md with description_obfuscated.md if $OBFUSCATE is set
+# append competition description (use obfuscated version if $OBFUSCATE is set)
 if [ "$OBFUSCATE" = "true" ]; then
-  if [ ! -w /home/data/ ]; then
-    echo "Obfuscation not implemented for read-only mounts"
-    exit 1
-  fi
-  mv /home/data/description_obfuscated.md /home/data/description.md
+  cat /home/data/description_obfuscated.md >> ${AGENT_DIR}/full_instructions.txt
+else
+  cat /home/data/description.md >> ${AGENT_DIR}/full_instructions.txt
 fi
-cat /home/data/description.md >> ${AGENT_DIR}/full_instructions.txt
 
 # symbolic linking
 # agent will write to AGENT_DIR/workspaces/exp/ and AGENT_DIR/logs/exp

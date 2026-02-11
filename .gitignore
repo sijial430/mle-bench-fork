@@ -6,7 +6,7 @@ outputs/
 analysis/
 runs/*
 runs/*/metadata.json
-*.md
+#*.md
 journals/
 
 # Re-include metadata.json, dolos, and grading reports

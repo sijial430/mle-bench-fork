@@ -288,6 +288,27 @@ class Agent:
     ):
         self.data_preview = data_preview.generate(self.cfg.workspace_dir)
 
+    def seed_solution(self, code: str, exec_callback: ExecCallbackType):
+        """Seed a pre-specified solution as a draft node.
+
+        The code is executed and evaluated just like an LLM-generated draft,
+        but no LLM call is made for code generation.
+        """
+        if self.data_preview is None:
+            self.update_data_preview()
+
+        result_node = Node(
+            plan="Pre-specified seed solution.",
+            code=code,
+        )
+        logger.info(f"Seeding solution as draft node {result_node.id}")
+
+        self.parse_exec_result(
+            node=result_node,
+            exec_result=exec_callback(result_node.code, True),
+        )
+        self.journal.append(result_node)
+
     def step(self, exec_callback: ExecCallbackType):
         if not self.journal.nodes or self.data_preview is None:
             self.update_data_preview()

@@ -3,7 +3,7 @@
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Hashable, cast
+from typing import Hashable, Optional, cast
 
 import coolname
 import rich
@@ -39,6 +39,7 @@ class SearchConfig:
     debug_prob: float
     num_drafts: int
     max_parallel_width: int
+    seed_solution_files: Optional[list[str]]
 
 
 @dataclass

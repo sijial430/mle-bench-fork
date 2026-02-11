@@ -57,3 +57,6 @@ agent:
     debug_prob: 0.5
     num_drafts: 5
     max_parallel_width: 0  # 0 = unlimited
+    # paths to pre-specified solution.py files to seed as initial drafts
+    # the number of files must be less than num_drafts
+    seed_solution_files: null

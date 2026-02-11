@@ -1,6 +1,7 @@
 import atexit
 import logging
 import shutil
+from pathlib import Path
 
 from . import backend
 
@@ -8,7 +9,7 @@ from .agent import Agent
 from .interpreter import Interpreter
 from .journal import Journal, Node
 from .journal2report import journal2report
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, ListConfig
 from rich.columns import Columns
 from rich.console import Group
 from rich.live import Live
@@ -95,6 +96,28 @@ def run():
         res = interpreter.run(*args, **kwargs)
         status.update("[green]Generating code...")
         return res
+
+    # Seed pre-specified solutions before the main loop
+    seed_files = getattr(cfg.agent.search, "seed_solution_files", None)
+    if seed_files:
+        if not isinstance(seed_files, (list, tuple, ListConfig)):
+            seed_files = [seed_files]
+        num_drafts = cfg.agent.search.num_drafts
+        if len(seed_files) >= num_drafts:
+            raise ValueError(
+                f"Number of seed solution files ({len(seed_files)}) must be "
+                f"less than num_drafts ({num_drafts})."
+            )
+        for sol_path in seed_files:
+            sol_path = Path(sol_path).resolve()
+            if not sol_path.exists():
+                raise FileNotFoundError(f"Seed solution file not found: {sol_path}")
+            logger.info(f"Seeding solution from: {sol_path}")
+            print(f"Seeding solution from: {sol_path}")
+            code = sol_path.read_text()
+            agent.seed_solution(code, exec_callback)
+            save_run(cfg, journal)
+            global_step = len(journal)
 
     def generate_live():
         tree = journal_to_rich_tree(journal)
